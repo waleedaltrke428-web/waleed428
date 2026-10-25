@@ -44,7 +44,7 @@ val EXS = listOf(
             .filter { it.getString("quoteCoin") == "USDT" && it.getString("contractType") == "LinearPerpetual" && it.getString("status") == "Trading" }
             .map { it.getString("symbol") }
     }, { s, tf, n ->
-        val iv = mapOf("15m" to "15", "4h" to "240", "1d" to "D")[tf]
+        val iv = mapOf("15m" to "15", "4h" to "240", "1d" to "D", "1w" to "W")[tf]
         val a = JSONObject(http("https://api.bybit.com/v5/market/kline?category=linear&symbol=$s&interval=$iv&limit=$n")).getJSONObject("result").getJSONArray("list")
         (a.length() - 1 downTo 1).map { cd(a.getJSONArray(it)) }
     }),
@@ -53,7 +53,7 @@ val EXS = listOf(
             .filter { it.optString("settleCcy") == "USDT" && it.getString("state") == "live" }
             .map { it.getString("instId") }
     }, { s, tf, n ->
-        val b = mapOf("15m" to "15m", "4h" to "4H", "1d" to "1D")[tf]
+        val b = mapOf("15m" to "15m", "4h" to "4H", "1d" to "1D", "1w" to "1W")[tf]
         val a = JSONObject(http("https://www.okx.com/api/v5/market/candles?instId=$s&bar=$b&limit=$n")).getJSONArray("data")
         (a.length() - 1 downTo 0).map { a.getJSONArray(it) }.filter { it.getString(8) == "1" }.map { cd(it) }
     })
@@ -116,69 +116,92 @@ fun adx(k: List<C>, p: Int = 14): Double {
     return av
 }
 
-fun analyze(ex: Ex, s: String, minScore: Int): JSONObject? {
-    val k4 = ex.k(s, "4h", 200); if (k4.size < 80) return null
-    val t4 = trend(k4); if (t4 == 0) return null
-    val k1 = ex.k(s, "1d", 200); if (k1.size < 60 || trend(k1) != t4) return null
-    val k = ex.k(s, "15m", 150); if (k.size < 100) return null
-    val long = t4 == 1
-    val n = k.size; val p = k.last().c; val cl = k.map { it.c }
-    val r = rsi(cl); val a15 = atr(k); val ad = adx(k4)
-    val hh = hist(cl); val h0 = hh[hh.size - 1]; val h1 = hh[hh.size - 2]
-    val avgV = k.takeLast(30).map { it.v }.average().coerceAtLeast(1e-12)
-    // Order Block: آخر شمعة معاكسة قبل حركة اندفاعية كسرت الهيكل
-    var iImp = -1; var j = -1
-    for (i in n - 2 downTo 32) {
-        val c = k[i]
-        if (abs(c.c - c.o) < 1.5 * a15 || (c.c > c.o) != long) continue
-        val prior = k.subList(i - 8, i)
-        val bos = if (long) c.c > prior.maxOf { it.h } else c.c < prior.minOf { it.l }
-        if (!bos) continue
-        var q = i - 1
-        while (q >= i - 4 && ((k[q].c < k[q].o) != long)) q--
-        if (q < i - 4) continue
-        iImp = i; j = q; break
+class Z(var lo: Double, var hi: Double, var w: Int, var mx: Int)
+class ZC(val t: Long, val z: List<Z>, val t4: Int, val t1: Int, val pad: Double)
+val ZCACHE = java.util.concurrent.ConcurrentHashMap<String, ZC>()
+
+// مناطق الدعم والمقاومة من تاريخ العملة: أسبوعي (وزن 3) + يومي (2) + 4 ساعات (1)، تُجمَّع القمم والقيعان المتقاربة بمنطقة واحدة
+fun buildZones(ex: Ex, s: String): ZC? {
+    val k1w = ex.k(s, "1w", 200); val k1d = ex.k(s, "1d", 300); val k4 = ex.k(s, "4h", 300)
+    if (k1d.size < 60 || k4.size < 80) return null
+    val tol = 0.5 * atr(k1d)
+    val pts = ArrayList<Pair<Double, Int>>()
+    for (t in listOf(Triple(k1w, 2, 3), Triple(k1d, 3, 2), Triple(k4, 3, 1))) {
+        if (t.first.size < 10) continue
+        val pv = pivots(t.first, t.second)
+        for (v in pv.first + pv.second) pts.add(Pair(v, t.third))
     }
-    if (iImp < 0) return null
-    val obL = k[j].l; val obH = k[j].h
-    for (x in iImp + 1 until n) { if (if (long) k[x].c < obL else k[x].c > obH) return null }
-    val entry = (obH + obL) / 2
-    val sl = if (long) obL - 0.25 * a15 else obH + 0.25 * a15
+    pts.sortBy { it.first }
+    val zs = ArrayList<Z>()
+    for (pt in pts) {
+        val z = zs.lastOrNull()
+        if (z != null && pt.first - z.lo <= 2 * tol) { z.hi = pt.first; z.w += pt.second; z.mx = max(z.mx, pt.second) }
+        else zs.add(Z(pt.first, pt.first, pt.second, pt.second))
+    }
+    return ZC(System.currentTimeMillis(), zs.filter { it.w >= 4 }, trend(k4), trend(k1d), 0.15 * atr(k1d))
+}
+
+fun evalZone(k: List<C>, zc: ZC, z: Z, long: Boolean, s: String, minScore: Int): JSONObject? {
+    val p = k.last().c; val a15 = atr(k); val cl = k.map { it.c }
+    val lo = z.lo - zc.pad; val hi = z.hi + zc.pad
+    val near = if (long) p >= lo - 0.3 * a15 && p <= hi + 1.5 * a15 else p <= hi + 0.3 * a15 && p >= lo - 1.5 * a15
+    if (!near) return null
+    val last = k.last(); val rng = max(last.h - last.l, 1e-12)
+    val touched = k.takeLast(3).any { if (long) it.l <= hi else it.h >= lo }
+    val inZone = p >= lo && p <= hi
+    val rej = touched && (if (long) (last.c > last.o && (min(last.o, last.c) - last.l) >= 0.35 * rng && last.c > lo) else (last.c < last.o && (last.h - max(last.o, last.c)) >= 0.35 * rng && last.c < hi))
+    val active: Boolean
+    if (rej) active = true else if (!touched && !inZone) active = false else return null
+    val entry = if (active) p else if (long) hi else lo
+    val sl = if (long) lo - 0.3 * a15 else hi + 0.3 * a15
     val risk = abs(entry - sl)
     if (risk < 0.6 * a15 || risk / entry > 0.05) return null
-    if (abs(p - entry) > 2.5 * a15) return null
+    if (abs(p - entry) > 2 * a15) return null
     if (if (long) p <= sl else p >= sl) return null
-    val active = if (long) p <= entry else p >= entry
-    var sc = 40; val why = ArrayList<String>()
-    why.add("اتجاه ${if (long) "صاعد" else "هابط"} على 4س واليومي")
-    why.add("Order Block ${if (long) "طلب" else "عرض"} بعد كسر هيكل")
-    if (ad > 22) { sc += if (ad > 30) 8 else 5; why.add("ADX ${ad.toInt()} اتجاه قوي") }
-    val a = k.subList(iImp - 12, iImp + 1); val b = k.subList(iImp - 30, iImp - 12)
-    if (if (long) a.minOf { it.l } < b.minOf { it.l } else a.maxOf { it.h } > b.maxOf { it.h }) { sc += 12; why.add("سحب سيولة قبل الاندفاع") }
-    if ((iImp - 1..iImp + 1).any { m -> m + 1 < n && (if (long) k[m - 1].h < k[m + 1].l else k[m - 1].l > k[m + 1].h) }) { sc += 8; why.add("فجوة سعرية FVG") }
-    val w = k4.takeLast(100); var hi = 0; var lo = 0
-    w.forEachIndexed { i, x -> if (x.h > w[hi].h) hi = i; if (x.l < w[lo].l) lo = i }
-    val top = w[hi].h; val bot = w[lo].l; val rg = top - bot
-    if (if (long) entry < (top + bot) / 2 else entry > (top + bot) / 2) { sc += 8; why.add(if (long) "منطقة خصم Discount" else "منطقة علاوة Premium") }
-    val fr = if (rg > 0) abs(entry - (if (long) top else bot)) / rg else 0.0
-    if (fr >= 0.5 && fr <= 0.79) { sc += 6; why.add("تصحيح فيبو ${String.format(Locale.US, "%.0f", fr * 100)}% (OTE)") }
-    if (if (long) r < 45 else r > 55) { sc += if (if (long) r < 35 else r > 65) 10 else 6; why.add("RSI 15د ${r.toInt()} ${if (long) "تشبع بيعي" else "تشبع شرائي"}") }
-    if (if (long) h0 > h1 else h0 < h1) { sc += 5; why.add(if (long) "MACD زخم صاعد" else "MACD زخم هابط") }
-    val rv = k[iImp].v / avgV
-    if (rv > 1.5) { sc += 6; why.add("اندفاع بحجم ×${String.format(Locale.US, "%.1f", rv)}") }
-    if (active) { sc += 4; why.add("السعر داخل المنطقة") }
+    val dirv = if (long) 1 else -1
+    if (zc.t4 != dirv && z.w < 8) return null
+    var sc = min(30, z.w * 3) + 5 * z.mx; val why = ArrayList<String>()
+    val tfn = if (z.mx == 3) "أسبوعي" else if (z.mx == 2) "يومي" else "4 ساعات"
+    why.add("${if (long) "دعم" else "مقاومة"} تاريخي $tfn ${f(lo)}–${f(hi)} (${z.w} ارتدادات)")
+    if (zc.t4 == dirv) { sc += 10; why.add("اتجاه 4س متوافق") }
+    if (zc.t1 == dirv) { sc += 5; why.add("اتجاه يومي متوافق") }
+    if (rej) { sc += 15; why.add("شمعة رفض ${if (long) "صاعدة" else "هابطة"} من المنطقة") }
+    val r = rsi(cl)
+    if (if (long) r < 40 else r > 60) { sc += if (if (long) r < 30 else r > 70) 12 else 8; why.add("RSI 15د ${r.toInt()}") }
+    val hh = hist(cl)
+    if (if (long) hh.last() > hh[hh.size - 2] else hh.last() < hh[hh.size - 2]) { sc += 5; why.add("MACD زخم ${if (long) "صاعد" else "هابط"}") }
+    val avgV = k.takeLast(30).map { it.v }.average().coerceAtLeast(1e-12)
+    if (k.takeLast(3).any { it.v > 1.5 * avgV }) { sc += 6; why.add("حجم تداول مرتفع") }
+    if (inZone) sc += 5
     sc = min(sc, 100)
     if (sc < minScore) return null
+    val dist = (if (long) zc.z.filter { it.lo - zc.pad > entry }.map { it.lo - zc.pad - entry } else zc.z.filter { it.hi + zc.pad < entry }.map { entry - (it.hi + zc.pad) }).sorted()
+    val d2 = min(dist.firstOrNull { it >= 2.2 * risk } ?: (3 * risk), 4.5 * risk)
+    val d3 = min(dist.firstOrNull { it >= d2 * 1.25 } ?: (5 * risk), 8 * risk)
     val m = if (long) 1.0 else -1.0
     return JSONObject().put("sym", s).put("long", long).put("score", sc).put("why", JSONArray(why))
         .put("entry", entry).put("px", p).put("status", if (active) "active" else "wait").put("sl", sl)
-        .put("tp1", entry + m * 1.5 * risk).put("tp2", entry + m * 3 * risk).put("tp3", entry + m * 5 * risk)
-        .put("obl", obL).put("obh", obH).put("rsi", r).put("adx", ad).put("rv", rv).put("t", k.last().t).put("risk", risk / entry * 100)
+        .put("tp1", entry + m * 1.5 * risk).put("tp2", entry + m * d2).put("tp3", entry + m * d3)
+        .put("obl", lo).put("obh", hi).put("rsi", r).put("t", k.last().t).put("risk", risk / entry * 100)
+}
+
+fun analyze(ex: Ex, s: String, minScore: Int): JSONObject? {
+    val k = ex.k(s, "15m", 150); if (k.size < 100) return null
+    val key = ex.n + s; val c0 = ZCACHE[key]
+    val zc: ZC = if (c0 != null && System.currentTimeMillis() - c0.t < 6 * 3600000L) c0 else (buildZones(ex, s) ?: return null).also { ZCACHE[key] = it }
+    var best: JSONObject? = null
+    for (z in zc.z) for (lg in listOf(true, false)) {
+        val o = evalZone(k, zc, z, lg, s, minScore) ?: continue
+        if (best == null || o.getInt("score") > best.getInt("score")) best = o
+    }
+    val p = k.last().c
+    val zs = zc.z.sortedBy { abs((it.lo + it.hi) / 2 - p) }.take(8).map { JSONArray().put(it.lo - zc.pad).put(it.hi + zc.pad).put(it.w) }
+    return best?.put("zs", JSONArray(zs))
 }
 
 class ScanService : Service() {
     companion object { @Volatile var th: Thread? = null; val seen = HashSet<String>() }
-    private fun minScore() = prefs().getInt("min", 65)
+    private fun minScore() = prefs().getInt("min", 60)
     private fun prefs() = getSharedPreferences("s", 0)
 
     override fun onBind(i: Intent?): IBinder? = null
