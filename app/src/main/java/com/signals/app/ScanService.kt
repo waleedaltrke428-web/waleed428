@@ -16,8 +16,9 @@ import java.util.concurrent.Executors
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
-class C(val t: Long, val o: Double, val h: Double, val l: Double, val c: Double)
+class C(val t: Long, val o: Double, val h: Double, val l: Double, val c: Double, val v: Double)
 class Ex(val n: String, val syms: () -> List<String>, val k: (String, String, Int) -> List<C>)
 
 fun http(u: String): String {
@@ -27,7 +28,7 @@ fun http(u: String): String {
     return c.getInputStream().bufferedReader().use { it.readText() }
 }
 fun arr(a: JSONArray) = (0 until a.length()).map { a.getJSONObject(it) }
-fun cd(x: JSONArray) = C(x.getString(0).toLong(), x.getString(1).toDouble(), x.getString(2).toDouble(), x.getString(3).toDouble(), x.getString(4).toDouble())
+fun cd(x: JSONArray) = C(x.getString(0).toLong(), x.getString(1).toDouble(), x.getString(2).toDouble(), x.getString(3).toDouble(), x.getString(4).toDouble(), x.getString(5).toDouble())
 
 val EXS = listOf(
     Ex("Binance", {
@@ -94,34 +95,67 @@ fun f(x: Double): String {
     else if (a >= 0.01) String.format(Locale.US, "%.5f", x) else String.format(Locale.US, "%.4g", x)
 }
 
+fun emaS(c: List<Double>, p: Int): List<Double> { val k = 2.0 / (p + 1); var e = c[0]; return c.map { e = it * k + e * (1 - k); e } }
+fun hist(c: List<Double>): List<Double> { val m = emaS(c, 12).zip(emaS(c, 26)) { a, b -> a - b }; return m.zip(emaS(m, 9)) { a, b -> a - b } }
+fun pctB(c: List<Double>): Double {
+    val w = c.takeLast(20); val m = w.average(); val sd = sqrt(w.map { (it - m) * (it - m) }.average())
+    return if (sd == 0.0) 0.5 else (c.last() - (m - 2 * sd)) / (4 * sd)
+}
+fun adx(k: List<C>, p: Int = 14): Double {
+    var tr = 0.0; var pd = 0.0; var md = 0.0; val dx = ArrayList<Double>()
+    for (i in 1 until k.size) {
+        val up = k[i].h - k[i - 1].h; val dn = k[i - 1].l - k[i].l
+        val t = max(k[i].h - k[i].l, max(abs(k[i].h - k[i - 1].c), abs(k[i].l - k[i - 1].c)))
+        val pm = if (up > dn && up > 0) up else 0.0; val mm = if (dn > up && dn > 0) dn else 0.0
+        if (i <= p) { tr += t; pd += pm; md += mm } else { tr = tr - tr / p + t; pd = pd - pd / p + pm; md = md - md / p + mm }
+        if (i >= p && tr > 0) { val pi = 100 * pd / tr; val mi = 100 * md / tr; dx.add(if (pi + mi == 0.0) 0.0 else 100 * abs(pi - mi) / (pi + mi)) }
+    }
+    if (dx.size < p) return 0.0
+    var av = dx.take(p).average()
+    for (i in p until dx.size) av = (av * (p - 1) + dx[i]) / p
+    return av
+}
+
 fun analyze(ex: Ex, s: String, minScore: Int): JSONObject? {
     val k4 = ex.k(s, "4h", 200); if (k4.size < 80) return null
     val t4 = trend(k4); if (t4 == 0) return null
     val k1 = ex.k(s, "1d", 200); if (k1.size < 60 || trend(k1) != t4) return null
     val k = ex.k(s, "15m", 120); if (k.size < 60) return null
-    val last = k.last(); val prev = k[k.size - 2]; val p = last.c
-    val r = rsi(k.map { it.c }); val a15 = atr(k); val a4 = atr(k4)
+    val long = t4 == 1
+    val last = k.last(); val prev = k[k.size - 2]; val p = last.c; val cl = k.map { it.c }
+    val r = rsi(cl); val a15 = atr(k); val a4 = atr(k4); val ad = adx(k4)
+    val hh = hist(cl); val h0 = hh[hh.size - 1]; val h1 = hh[hh.size - 2]
+    val rv = last.v / k.takeLast(21).dropLast(1).map { it.v }.average().coerceAtLeast(1e-12)
+    val pb = pctB(cl)
     val (hs, lo4) = pivots(k4)
     val sup = lo4.filter { it < p }.maxOrNull() ?: 0.0
     val res = hs.filter { it > p }.minOrNull()
     val w = k4.takeLast(100); var hi = 0; var lo = 0
     w.forEachIndexed { i, x -> if (x.h > w[hi].h) hi = i; if (x.l < w[lo].l) lo = i }
-    val h1 = w[hi].h; val l1 = w[lo].l; val rg = h1 - l1; val tol = 0.3 * a4; val long = t4 == 1
-    val nf = listOf(0.382, 0.5, 0.618, 0.786).firstOrNull { abs(p - (if (long) h1 - it * rg else l1 + it * rg)) <= tol }
-    val why = ArrayList<String>(); var sc = 0
+    val top = w[hi].h; val bot = w[lo].l; val rg = top - bot; val tol = 0.3 * a4
+    val nf = listOf(0.382, 0.5, 0.618, 0.786).firstOrNull { abs(p - (if (long) top - it * rg else bot + it * rg)) <= tol }
+    var sc = 2; val why = ArrayList<String>()
+    why.add("اتجاه ${if (long) "صاعد" else "هابط"} على 4س واليومي")
+    if (ad > 22) { sc++; why.add("ADX ${ad.toInt()} اتجاه قوي") }
+    if (rv > 1.5) { sc++; why.add("حجم تداول ×${String.format(Locale.US, "%.1f", rv)}") }
     if (long) {
         if (r < 40) { sc++; why.add("RSI 15د ${r.toInt()} تشبع بيعي") }
         if (r < 30) sc++
         if (sup > 0 && p - sup <= tol) { sc++; why.add("عند دعم 4س ${f(sup)}") }
         if (nf != null && lo < hi) { sc++; why.add("تصحيح فيبو $nf") }
-        if (last.c > last.o && last.c > prev.h * 0.999) { sc++; why.add("شمعة تأكيد صاعدة") } else sc = min(sc, 2)
+        if (h0 > h1) { sc++; why.add("MACD زخم صاعد") }
+        if (pb < 0.2) { sc++; why.add("قرب الحد السفلي للبولنجر") }
+        if (last.c > last.o && last.c > prev.h * 0.999) { sc++; why.add("شمعة تأكيد صاعدة") } else sc = min(sc, 5)
     } else {
         if (r > 60) { sc++; why.add("RSI 15د ${r.toInt()} تشبع شرائي") }
         if (r > 70) sc++
         if (res != null && res - p <= tol) { sc++; why.add("عند مقاومة 4س ${f(res)}") }
         if (nf != null && hi < lo) { sc++; why.add("ارتداد فيبو $nf") }
-        if (last.c < last.o && last.c < prev.l * 1.001) { sc++; why.add("شمعة تأكيد هابطة") } else sc = min(sc, 2)
+        if (h0 < h1) { sc++; why.add("MACD زخم هابط") }
+        if (pb > 0.8) { sc++; why.add("قرب الحد العلوي للبولنجر") }
+        if (last.c < last.o && last.c < prev.l * 1.001) { sc++; why.add("شمعة تأكيد هابطة") } else sc = min(sc, 5)
     }
+    sc = min(sc, 10)
     if (sc < minScore) return null
     val rec = k.takeLast(20)
     var sl = if (long) rec.minOf { it.l } - 0.2 * a15 else rec.maxOf { it.h } + 0.2 * a15
@@ -129,13 +163,13 @@ fun analyze(ex: Ex, s: String, minScore: Int): JSONObject? {
     if (risk < 0.8 * a15) { risk = 0.8 * a15; sl = if (long) p - risk else p + risk }
     val m = if (long) 1.0 else -1.0
     return JSONObject().put("sym", s).put("long", long).put("score", sc).put("why", JSONArray(why))
-        .put("entry", p).put("sl", sl).put("tp1", p + m * 1.5 * risk).put("tp2", p + m * 3 * risk)
-        .put("rsi", r).put("t", last.t).put("risk", risk / p * 100)
+        .put("entry", p).put("sl", sl).put("tp1", p + m * 1.5 * risk).put("tp2", p + m * 3 * risk).put("tp3", p + m * 5 * risk)
+        .put("rsi", r).put("adx", ad).put("rv", rv).put("t", last.t).put("risk", risk / p * 100)
 }
 
 class ScanService : Service() {
     companion object { @Volatile var th: Thread? = null; val seen = HashSet<String>() }
-    private fun minScore() = prefs().getInt("min", 4)
+    private fun minScore() = prefs().getInt("min", 7)
     private fun prefs() = getSharedPreferences("s", 0)
 
     override fun onBind(i: Intent?): IBinder? = null
@@ -167,7 +201,7 @@ class ScanService : Service() {
         for (e in EXS) { try { val l = e.syms(); if (l.isNotEmpty()) { ex = e; syms = l; break } } catch (x: Exception) { } }
         val e = ex ?: run { prefs().edit().putString("d", JSONObject().put("err", "تعذّر الاتصال بالمنصات").toString()).apply(); return }
         val pool = Executors.newFixedThreadPool(6)
-        val all = pool.invokeAll(syms.map { s -> Callable<JSONObject?> { try { analyze(e, s, 2) } catch (x: Exception) { null } } })
+        val all = pool.invokeAll(syms.map { s -> Callable<JSONObject?> { try { analyze(e, s, 4) } catch (x: Exception) { null } } })
             .mapNotNull { it.get() }.sortedByDescending { it.getInt("score") }
         val ms = minScore()
         val res = all.filter { it.getInt("score") >= ms }.take(15)
