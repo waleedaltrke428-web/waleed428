@@ -196,6 +196,53 @@ class ScanService : Service() {
         return START_STICKY
     }
 
+    private fun note(id: Int, title: String, text: String) {
+        val pi = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(id,
+            Notification.Builder(this, "sig").setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle(title).setContentText(text).setContentIntent(pi).setAutoCancel(true).build())
+    }
+
+    private fun track(exName: String, res: List<JSONObject>): JSONArray {
+        var arr = JSONArray(prefs().getString("tr", "[]"))
+        val keys = HashSet<String>()
+        for (i in 0 until arr.length()) keys.add(arr.getJSONObject(i).getString("k"))
+        for (x in res) {
+            val k = x.getString("sym") + x.getBoolean("long") + x.getLong("t")
+            if (keys.add(k)) arr.put(JSONObject().put("k", k).put("sym", x.getString("sym")).put("ex", exName).put("long", x.getBoolean("long"))
+                .put("entry", x.getDouble("entry")).put("sl", x.getDouble("sl")).put("tp1", x.getDouble("tp1")).put("tp2", x.getDouble("tp2")).put("tp3", x.getDouble("tp3"))
+                .put("score", x.getInt("score")).put("t", x.getLong("t")).put("chk", x.getLong("t")).put("st", 0).put("res", "open"))
+        }
+        val nt = prefs().getBoolean("ntp", true); val ns = prefs().getBoolean("nsl", true)
+        for (i in 0 until arr.length()) {
+            val e = arr.getJSONObject(i)
+            if (e.getString("res") != "open") continue
+            val exx = EXS.firstOrNull { it.n == e.getString("ex") } ?: continue
+            try {
+                val ks = exx.k(e.getString("sym"), "15m", 200).filter { it.t > e.getLong("chk") }
+                val lg = e.getBoolean("long"); val en = e.getDouble("entry"); val sl = e.getDouble("sl")
+                val tps = doubleArrayOf(e.getDouble("tp1"), e.getDouble("tp2"), e.getDouble("tp3"))
+                val st0 = e.getInt("st"); var st = st0; var rs = "open"; var chk = e.getLong("chk")
+                for (c in ks) {
+                    chk = c.t; val was = st
+                    if (was == 0 && (if (lg) c.l <= sl else c.h >= sl)) { rs = "loss"; break }
+                    var nw = was
+                    for (j in 0..2) if (if (lg) c.h >= tps[j] else c.l <= tps[j]) nw = max(nw, j + 1)
+                    if (was >= 1 && nw == was && (if (lg) c.l <= en else c.h >= en)) { rs = "win"; break }
+                    st = nw
+                    if (st == 3) { rs = "win"; break }
+                }
+                if (rs == "open" && System.currentTimeMillis() - e.getLong("t") > 72L * 3600000L) rs = "exp"
+                e.put("st", st).put("res", rs).put("chk", chk)
+                if (st > st0 && nt) note((e.getString("k") + st).hashCode(), "🎯 ${e.getString("sym")} حققت الهدف $st", "الدخول ${f(en)} • الهدف ${f(tps[st - 1])}")
+                if (rs == "loss" && ns) note((e.getString("k") + "L").hashCode(), "🛑 ${e.getString("sym")} ضربت وقف الخسارة", "الوقف ${f(sl)}")
+            } catch (x: Exception) { }
+        }
+        if (arr.length() > 150) { val na = JSONArray(); for (i in arr.length() - 150 until arr.length()) na.put(arr.get(i)); arr = na }
+        prefs().edit().putString("tr", arr.toString()).apply()
+        return arr
+    }
+
     private fun scan() {
         var ex: Ex? = null; var syms: List<String> = emptyList()
         for (e in EXS) { try { val l = e.syms(); if (l.isNotEmpty()) { ex = e; syms = l; break } } catch (x: Exception) { } }
@@ -207,7 +254,8 @@ class ScanService : Service() {
         val res = all.filter { it.getInt("score") >= ms }.take(15)
         val near = all.filter { it.getInt("score") < ms }.take(40)
         pool.shutdown()
-        val out = JSONObject().put("time", System.currentTimeMillis()).put("ex", e.n).put("total", syms.size).put("list", JSONArray(res)).put("near", JSONArray(near))
+        val tr = track(e.n, res)
+        val out = JSONObject().put("time", System.currentTimeMillis()).put("ex", e.n).put("total", syms.size).put("list", JSONArray(res)).put("near", JSONArray(near)).put("tr", tr)
         prefs().edit().putString("d", out.toString()).apply()
         if (seen.size > 3000) seen.clear()
         val fresh = res.filter { seen.add(it.getString("sym") + it.getBoolean("long") + it.getLong("t")) }

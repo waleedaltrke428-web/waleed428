@@ -26,7 +26,8 @@ class MainActivity : Activity() {
         @JavascriptInterface fun get(): String = getSharedPreferences("s", 0).getString("d", "{}") ?: "{}"
         @JavascriptInterface fun busy(): Boolean = getSharedPreferences("s", 0).getBoolean("b", false)
         @JavascriptInterface fun scan() { ScanService.th?.interrupt() }
-        @JavascriptInterface fun setCfg(m: Int, n: Boolean) { getSharedPreferences("s", 0).edit().putInt("min", m).putBoolean("notif", n).apply() }
+        @JavascriptInterface fun setCfg(m: Int, n: Boolean, tp: Boolean, sl: Boolean) { getSharedPreferences("s", 0).edit().putInt("min", m).putBoolean("notif", n).putBoolean("ntp", tp).putBoolean("nsl", sl).apply() }
+        @JavascriptInterface fun resetStats() { getSharedPreferences("s", 0).edit().remove("tr").apply() }
         @JavascriptInterface fun openUrl(u: String) { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(u))) }
         @JavascriptInterface fun copy(t: String) {
             (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("s", t))
