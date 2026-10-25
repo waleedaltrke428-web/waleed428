@@ -120,56 +120,65 @@ fun analyze(ex: Ex, s: String, minScore: Int): JSONObject? {
     val k4 = ex.k(s, "4h", 200); if (k4.size < 80) return null
     val t4 = trend(k4); if (t4 == 0) return null
     val k1 = ex.k(s, "1d", 200); if (k1.size < 60 || trend(k1) != t4) return null
-    val k = ex.k(s, "15m", 120); if (k.size < 60) return null
+    val k = ex.k(s, "15m", 150); if (k.size < 100) return null
     val long = t4 == 1
-    val last = k.last(); val prev = k[k.size - 2]; val p = last.c; val cl = k.map { it.c }
-    val r = rsi(cl); val a15 = atr(k); val a4 = atr(k4); val ad = adx(k4)
+    val n = k.size; val p = k.last().c; val cl = k.map { it.c }
+    val r = rsi(cl); val a15 = atr(k); val ad = adx(k4)
     val hh = hist(cl); val h0 = hh[hh.size - 1]; val h1 = hh[hh.size - 2]
-    val rv = last.v / k.takeLast(21).dropLast(1).map { it.v }.average().coerceAtLeast(1e-12)
-    val pb = pctB(cl)
-    val (hs, lo4) = pivots(k4)
-    val sup = lo4.filter { it < p }.maxOrNull() ?: 0.0
-    val res = hs.filter { it > p }.minOrNull()
+    val avgV = k.takeLast(30).map { it.v }.average().coerceAtLeast(1e-12)
+    // Order Block: آخر شمعة معاكسة قبل حركة اندفاعية كسرت الهيكل
+    var iImp = -1; var j = -1
+    for (i in n - 2 downTo 32) {
+        val c = k[i]
+        if (abs(c.c - c.o) < 1.5 * a15 || (c.c > c.o) != long) continue
+        val prior = k.subList(i - 8, i)
+        val bos = if (long) c.c > prior.maxOf { it.h } else c.c < prior.minOf { it.l }
+        if (!bos) continue
+        var q = i - 1
+        while (q >= i - 4 && ((k[q].c < k[q].o) != long)) q--
+        if (q < i - 4) continue
+        iImp = i; j = q; break
+    }
+    if (iImp < 0) return null
+    val obL = k[j].l; val obH = k[j].h
+    for (x in iImp + 1 until n) { if (if (long) k[x].c < obL else k[x].c > obH) return null }
+    val entry = (obH + obL) / 2
+    val sl = if (long) obL - 0.25 * a15 else obH + 0.25 * a15
+    val risk = abs(entry - sl)
+    if (risk < 0.6 * a15 || risk / entry > 0.05) return null
+    if (abs(p - entry) > 2.5 * a15) return null
+    if (if (long) p <= sl else p >= sl) return null
+    val active = if (long) p <= entry else p >= entry
+    var sc = 40; val why = ArrayList<String>()
+    why.add("اتجاه ${if (long) "صاعد" else "هابط"} على 4س واليومي")
+    why.add("Order Block ${if (long) "طلب" else "عرض"} بعد كسر هيكل")
+    if (ad > 22) { sc += if (ad > 30) 8 else 5; why.add("ADX ${ad.toInt()} اتجاه قوي") }
+    val a = k.subList(iImp - 12, iImp + 1); val b = k.subList(iImp - 30, iImp - 12)
+    if (if (long) a.minOf { it.l } < b.minOf { it.l } else a.maxOf { it.h } > b.maxOf { it.h }) { sc += 12; why.add("سحب سيولة قبل الاندفاع") }
+    if ((iImp - 1..iImp + 1).any { m -> m + 1 < n && (if (long) k[m - 1].h < k[m + 1].l else k[m - 1].l > k[m + 1].h) }) { sc += 8; why.add("فجوة سعرية FVG") }
     val w = k4.takeLast(100); var hi = 0; var lo = 0
     w.forEachIndexed { i, x -> if (x.h > w[hi].h) hi = i; if (x.l < w[lo].l) lo = i }
-    val top = w[hi].h; val bot = w[lo].l; val rg = top - bot; val tol = 0.3 * a4
-    val nf = listOf(0.382, 0.5, 0.618, 0.786).firstOrNull { abs(p - (if (long) top - it * rg else bot + it * rg)) <= tol }
-    var sc = 2; val why = ArrayList<String>()
-    why.add("اتجاه ${if (long) "صاعد" else "هابط"} على 4س واليومي")
-    if (ad > 22) { sc++; why.add("ADX ${ad.toInt()} اتجاه قوي") }
-    if (rv > 1.5) { sc++; why.add("حجم تداول ×${String.format(Locale.US, "%.1f", rv)}") }
-    if (long) {
-        if (r < 40) { sc++; why.add("RSI 15د ${r.toInt()} تشبع بيعي") }
-        if (r < 30) sc++
-        if (sup > 0 && p - sup <= tol) { sc++; why.add("عند دعم 4س ${f(sup)}") }
-        if (nf != null && lo < hi) { sc++; why.add("تصحيح فيبو $nf") }
-        if (h0 > h1) { sc++; why.add("MACD زخم صاعد") }
-        if (pb < 0.2) { sc++; why.add("قرب الحد السفلي للبولنجر") }
-        if (last.c > last.o && last.c > prev.h * 0.999) { sc++; why.add("شمعة تأكيد صاعدة") } else sc = min(sc, 5)
-    } else {
-        if (r > 60) { sc++; why.add("RSI 15د ${r.toInt()} تشبع شرائي") }
-        if (r > 70) sc++
-        if (res != null && res - p <= tol) { sc++; why.add("عند مقاومة 4س ${f(res)}") }
-        if (nf != null && hi < lo) { sc++; why.add("ارتداد فيبو $nf") }
-        if (h0 < h1) { sc++; why.add("MACD زخم هابط") }
-        if (pb > 0.8) { sc++; why.add("قرب الحد العلوي للبولنجر") }
-        if (last.c < last.o && last.c < prev.l * 1.001) { sc++; why.add("شمعة تأكيد هابطة") } else sc = min(sc, 5)
-    }
-    sc = min(sc, 10)
+    val top = w[hi].h; val bot = w[lo].l; val rg = top - bot
+    if (if (long) entry < (top + bot) / 2 else entry > (top + bot) / 2) { sc += 8; why.add(if (long) "منطقة خصم Discount" else "منطقة علاوة Premium") }
+    val fr = if (rg > 0) abs(entry - (if (long) top else bot)) / rg else 0.0
+    if (fr >= 0.5 && fr <= 0.79) { sc += 6; why.add("تصحيح فيبو ${String.format(Locale.US, "%.0f", fr * 100)}% (OTE)") }
+    if (if (long) r < 45 else r > 55) { sc += if (if (long) r < 35 else r > 65) 10 else 6; why.add("RSI 15د ${r.toInt()} ${if (long) "تشبع بيعي" else "تشبع شرائي"}") }
+    if (if (long) h0 > h1 else h0 < h1) { sc += 5; why.add(if (long) "MACD زخم صاعد" else "MACD زخم هابط") }
+    val rv = k[iImp].v / avgV
+    if (rv > 1.5) { sc += 6; why.add("اندفاع بحجم ×${String.format(Locale.US, "%.1f", rv)}") }
+    if (active) { sc += 4; why.add("السعر داخل المنطقة") }
+    sc = min(sc, 100)
     if (sc < minScore) return null
-    val rec = k.takeLast(20)
-    var sl = if (long) rec.minOf { it.l } - 0.2 * a15 else rec.maxOf { it.h } + 0.2 * a15
-    var risk = abs(p - sl)
-    if (risk < 0.8 * a15) { risk = 0.8 * a15; sl = if (long) p - risk else p + risk }
     val m = if (long) 1.0 else -1.0
     return JSONObject().put("sym", s).put("long", long).put("score", sc).put("why", JSONArray(why))
-        .put("entry", p).put("sl", sl).put("tp1", p + m * 1.5 * risk).put("tp2", p + m * 3 * risk).put("tp3", p + m * 5 * risk)
-        .put("rsi", r).put("adx", ad).put("rv", rv).put("t", last.t).put("risk", risk / p * 100)
+        .put("entry", entry).put("px", p).put("status", if (active) "active" else "wait").put("sl", sl)
+        .put("tp1", entry + m * 1.5 * risk).put("tp2", entry + m * 3 * risk).put("tp3", entry + m * 5 * risk)
+        .put("obl", obL).put("obh", obH).put("rsi", r).put("adx", ad).put("rv", rv).put("t", k.last().t).put("risk", risk / entry * 100)
 }
 
 class ScanService : Service() {
     companion object { @Volatile var th: Thread? = null; val seen = HashSet<String>() }
-    private fun minScore() = prefs().getInt("min", 7)
+    private fun minScore() = prefs().getInt("min", 65)
     private fun prefs() = getSharedPreferences("s", 0)
 
     override fun onBind(i: Intent?): IBinder? = null
@@ -211,20 +220,27 @@ class ScanService : Service() {
             val k = x.getString("sym") + x.getBoolean("long") + x.getLong("t")
             if (keys.add(k)) arr.put(JSONObject().put("k", k).put("sym", x.getString("sym")).put("ex", exName).put("long", x.getBoolean("long"))
                 .put("entry", x.getDouble("entry")).put("sl", x.getDouble("sl")).put("tp1", x.getDouble("tp1")).put("tp2", x.getDouble("tp2")).put("tp3", x.getDouble("tp3"))
-                .put("score", x.getInt("score")).put("t", x.getLong("t")).put("chk", x.getLong("t")).put("st", 0).put("res", "open"))
+                .put("score", x.getInt("score")).put("t", x.getLong("t")).put("chk", x.getLong("t")).put("st", 0).put("res", if (x.getString("status") == "active") "open" else "wait").put("tg", x.getString("status") == "active"))
         }
         val nt = prefs().getBoolean("ntp", true); val ns = prefs().getBoolean("nsl", true)
         for (i in 0 until arr.length()) {
             val e = arr.getJSONObject(i)
-            if (e.getString("res") != "open") continue
+            val r0 = e.getString("res"); if (r0 != "open" && r0 != "wait") continue
             val exx = EXS.firstOrNull { it.n == e.getString("ex") } ?: continue
             try {
                 val ks = exx.k(e.getString("sym"), "15m", 200).filter { it.t > e.getLong("chk") }
                 val lg = e.getBoolean("long"); val en = e.getDouble("entry"); val sl = e.getDouble("sl")
                 val tps = doubleArrayOf(e.getDouble("tp1"), e.getDouble("tp2"), e.getDouble("tp3"))
-                val st0 = e.getInt("st"); var st = st0; var rs = "open"; var chk = e.getLong("chk")
+                val st0 = e.getInt("st"); var st = st0; var rs = r0; var chk = e.getLong("chk"); var tg = e.optBoolean("tg")
                 for (c in ks) {
-                    chk = c.t; val was = st
+                    chk = c.t
+                    if (rs == "wait") {
+                        if (!(if (lg) c.l <= en else c.h >= en)) { if (if (lg) c.h >= tps[0] else c.l <= tps[0]) { rs = "miss"; break }; continue }
+                        rs = "open"; tg = true
+                        if (if (lg) c.l <= sl else c.h >= sl) { rs = "loss"; break }
+                        continue
+                    }
+                    val was = st
                     if (was == 0 && (if (lg) c.l <= sl else c.h >= sl)) { rs = "loss"; break }
                     var nw = was
                     for (j in 0..2) if (if (lg) c.h >= tps[j] else c.l <= tps[j]) nw = max(nw, j + 1)
@@ -232,8 +248,11 @@ class ScanService : Service() {
                     st = nw
                     if (st == 3) { rs = "win"; break }
                 }
-                if (rs == "open" && System.currentTimeMillis() - e.getLong("t") > 72L * 3600000L) rs = "exp"
-                e.put("st", st).put("res", rs).put("chk", chk)
+                val age = System.currentTimeMillis() - e.getLong("t")
+                if (rs == "open" && age > 72L * 3600000L) rs = "exp"
+                if (rs == "wait" && age > 24L * 3600000L) rs = "exp"
+                e.put("st", st).put("res", rs).put("chk", chk).put("tg", tg)
+                if (r0 == "wait" && tg && nt) note((e.getString("k") + "E").hashCode(), "✅ ${e.getString("sym")} انفعلت الصفقة", "الدخول ${f(en)} • الوقف ${f(sl)}")
                 if (st > st0 && nt) note((e.getString("k") + st).hashCode(), "🎯 ${e.getString("sym")} حققت الهدف $st", "الدخول ${f(en)} • الهدف ${f(tps[st - 1])}")
                 if (rs == "loss" && ns) note((e.getString("k") + "L").hashCode(), "🛑 ${e.getString("sym")} ضربت وقف الخسارة", "الوقف ${f(sl)}")
             } catch (x: Exception) { }
@@ -248,7 +267,7 @@ class ScanService : Service() {
         for (e in EXS) { try { val l = e.syms(); if (l.isNotEmpty()) { ex = e; syms = l; break } } catch (x: Exception) { } }
         val e = ex ?: run { prefs().edit().putString("d", JSONObject().put("err", "تعذّر الاتصال بالمنصات").toString()).apply(); return }
         val pool = Executors.newFixedThreadPool(6)
-        val all = pool.invokeAll(syms.map { s -> Callable<JSONObject?> { try { analyze(e, s, 4) } catch (x: Exception) { null } } })
+        val all = pool.invokeAll(syms.map { s -> Callable<JSONObject?> { try { analyze(e, s, 40) } catch (x: Exception) { null } } })
             .mapNotNull { it.get() }.sortedByDescending { it.getInt("score") }
         val ms = minScore()
         val res = all.filter { it.getInt("score") >= ms }.take(15)
