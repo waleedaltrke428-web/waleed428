@@ -167,10 +167,13 @@ class ScanService : Service() {
         for (e in EXS) { try { val l = e.syms(); if (l.isNotEmpty()) { ex = e; syms = l; break } } catch (x: Exception) { } }
         val e = ex ?: run { prefs().edit().putString("d", JSONObject().put("err", "تعذّر الاتصال بالمنصات").toString()).apply(); return }
         val pool = Executors.newFixedThreadPool(6)
-        val res = pool.invokeAll(syms.map { s -> Callable<JSONObject?> { try { analyze(e, s, minScore()) } catch (x: Exception) { null } } })
-            .mapNotNull { it.get() }.sortedByDescending { it.getInt("score") }.take(15)
+        val all = pool.invokeAll(syms.map { s -> Callable<JSONObject?> { try { analyze(e, s, 2) } catch (x: Exception) { null } } })
+            .mapNotNull { it.get() }.sortedByDescending { it.getInt("score") }
+        val ms = minScore()
+        val res = all.filter { it.getInt("score") >= ms }.take(15)
+        val near = all.filter { it.getInt("score") < ms }.take(40)
         pool.shutdown()
-        val out = JSONObject().put("time", System.currentTimeMillis()).put("ex", e.n).put("total", syms.size).put("list", JSONArray(res))
+        val out = JSONObject().put("time", System.currentTimeMillis()).put("ex", e.n).put("total", syms.size).put("list", JSONArray(res)).put("near", JSONArray(near))
         prefs().edit().putString("d", out.toString()).apply()
         if (seen.size > 3000) seen.clear()
         val fresh = res.filter { seen.add(it.getString("sym") + it.getBoolean("long") + it.getLong("t")) }
