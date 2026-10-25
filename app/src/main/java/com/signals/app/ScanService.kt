@@ -135,7 +135,7 @@ fun analyze(ex: Ex, s: String, minScore: Int): JSONObject? {
 
 class ScanService : Service() {
     companion object { @Volatile var th: Thread? = null; val seen = HashSet<String>() }
-    private val minScore = 4
+    private fun minScore() = prefs().getInt("min", 4)
     private fun prefs() = getSharedPreferences("s", 0)
 
     override fun onBind(i: Intent?): IBinder? = null
@@ -167,14 +167,14 @@ class ScanService : Service() {
         for (e in EXS) { try { val l = e.syms(); if (l.isNotEmpty()) { ex = e; syms = l; break } } catch (x: Exception) { } }
         val e = ex ?: run { prefs().edit().putString("d", JSONObject().put("err", "تعذّر الاتصال بالمنصات").toString()).apply(); return }
         val pool = Executors.newFixedThreadPool(6)
-        val res = pool.invokeAll(syms.map { s -> Callable<JSONObject?> { try { analyze(e, s, minScore) } catch (x: Exception) { null } } })
+        val res = pool.invokeAll(syms.map { s -> Callable<JSONObject?> { try { analyze(e, s, minScore()) } catch (x: Exception) { null } } })
             .mapNotNull { it.get() }.sortedByDescending { it.getInt("score") }.take(15)
         pool.shutdown()
         val out = JSONObject().put("time", System.currentTimeMillis()).put("ex", e.n).put("total", syms.size).put("list", JSONArray(res))
         prefs().edit().putString("d", out.toString()).apply()
         if (seen.size > 3000) seen.clear()
         val fresh = res.filter { seen.add(it.getString("sym") + it.getBoolean("long") + it.getLong("t")) }
-        if (fresh.isNotEmpty()) {
+        if (fresh.isNotEmpty() && prefs().getBoolean("notif", true)) {
             val names = fresh.take(5).joinToString("  ") { (if (it.getBoolean("long")) "🟢 " else "🔴 ") + it.getString("sym") }
             val pi = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
             (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(2,
