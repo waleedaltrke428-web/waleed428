@@ -90,7 +90,7 @@ nav{background:rgba(16,30,38,.95);backdrop-filter:blur(10px)}nav button{font-siz
 <section class="v" id="v2"><div class="stats" id="sg2"></div><div class="bias" id="wr"></div><div class="sh">سجل الفرص</div><div id="hist"></div><p class="nt">النتائج محسوبة من شموع 15 دقيقة بعد ظهور الفرصة. عند وقوع الوقف والهدف بنفس الشمعة بتنحسب خسارة (تحفظاً). بعد الهدف 1 بيعتبر الوقف عند الدخول.</p></section>
 <section class="v" id="v3">
 <div class="sh">الفرص</div><div class="f"><label>أقل قوة للفرصة</label><select id="cm"><option value="50">50 من 100 (فرص أكثر)</option><option value="60">60 من 100 (متوازن)</option><option value="70">70 من 100 (الأقوى)</option></select></div>
-<div class="sh">إدارة المخاطر</div><div class="f"><label>رأس المال (USDT)</label><input id="cc" type="number" inputmode="decimal"></div><div class="f"><label>المخاطرة لكل صفقة (%)</label><input id="cr" type="number" inputmode="decimal" step="0.1"></div>
+<div class="sh">إدارة المخاطر</div><div class="f"><label>رأس المال (USDT)</label><input id="cc" type="number" inputmode="decimal"></div><div class="f"><label>المخاطرة لكل صفقة (%) • حد أقصى 3%</label><input id="cr" type="number" inputmode="decimal" step="0.1" max="3"></div>
 <div class="sh">التنبيهات</div><label class="tg"><span>🔔 ظهور فرصة جديدة</span><input type="checkbox" id="ns"></label><label class="tg"><span>🎯 تحقق هدف</span><input type="checkbox" id="nt"></label><label class="tg"><span>🛑 ضرب وقف الخسارة</span><input type="checkbox" id="nl"></label>
 <div class="sh">الشارت</div><div class="f"><label>الفريم الافتراضي</label><select id="ctf"><option>1m</option><option>5m</option><option>15m</option><option>30m</option><option>1h</option><option>4h</option><option>1d</option><option>1w</option></select></div>
 <div class="sh">البيانات</div><button class="dg" id="rs">مسح الإحصائيات والسجل</button></section>
@@ -106,7 +106,7 @@ const fmt=x=>{const a=Math.abs(x);return a>=100?x.toFixed(2):a>=1?x.toFixed(4):a
 const msg=x=>`${x.long?'🟢 شراء (LONG)':'🔴 بيع (SHORT)'} #${x.sym}\nنوع الدخول: Limit عند ${fmt(x.entry)}\nمنطقة الدعم/المقاومة: ${fmt(x.obl)}–${fmt(x.obh)}\nالهدف 1: ${fmt(x.tp1)}\nالهدف 2: ${fmt(x.tp2)}\nالهدف 3: ${fmt(x.tp3)}\nوقف الخسارة: ${fmt(x.sl)}\nالأسباب: ${x.why.join(' + ')}\nالقوة: ${x.score}/100\nبعد الهدف 1 حرّك الوقف لنقطة الدخول\n⚠️ ليست نصيحة مالية`;
 function push(){A&&A.setCfg(+cfg.min,!!cfg.nSig,!!cfg.nTp,!!cfg.nSl)}
 function sync(){$('cm').value=cfg.min;$('cc').value=cfg.cap;$('cr').value=cfg.risk;$('ns').checked=!!cfg.nSig;$('nt').checked=!!cfg.nTp;$('nl').checked=!!cfg.nSl;$('ctf').value=cfg.tf;CT=cfg.tf}
-['cm','cc','cr','ns','nt','nl','ctf'].forEach(id=>$(id).onchange=()=>{cfg={min:+$('cm').value,cap:+$('cc').value||1000,risk:+$('cr').value||1,nSig:+$('ns').checked,nTp:+$('nt').checked,nSl:+$('nl').checked,tf:$('ctf').value};wr('cfg',cfg);push();paint()});
+['cm','cc','cr','ns','nt','nl','ctf'].forEach(id=>$(id).onchange=()=>{cfg={min:+$('cm').value,cap:+$('cc').value||1000,risk:Math.min(3,+$('cr').value||1),nSig:+$('ns').checked,nTp:+$('nt').checked,nSl:+$('nl').checked,tf:$('ctf').value};wr('cfg',cfg);push();paint()});
 let RQ=0;$('rs').onclick=()=>{if(!RQ){RQ=1;$('rs').textContent='اضغط مرة ثانية للتأكيد';setTimeout(()=>{RQ=0;$('rs').textContent='مسح الإحصائيات والسجل'},4000);return}RQ=0;A&&A.resetStats();D.tr=[];$('rs').textContent='مسح الإحصائيات والسجل';paint()};
 $('nv').onclick=e=>{const v=e.target.dataset.v;if(!v)return;[...$('nv').children].forEach(b=>b.classList.toggle('on',b===e.target));document.querySelectorAll('.v').forEach(s=>s.classList.toggle('on',s.id==='v'+v));scrollTo(0,0);if(v==='5')news()};
 
@@ -177,7 +177,8 @@ const IV={'1m':['1m','1','1m'],'5m':['5m','5','5m'],'15m':['15m','15','15m'],'30
 const KU={Binance:(s,t,n)=>`https://fapi.binance.com/fapi/v1/klines?symbol=${s}&interval=${IV[t][0]}&limit=${n}`,Bybit:(s,t,n)=>`https://api.bybit.com/v5/market/kline?category=linear&symbol=${s}&interval=${IV[t][1]}&limit=${n}`,OKX:(s,t,n)=>`https://www.okx.com/api/v5/market/candles?instId=${s}&bar=${IV[t][2]}&limit=${Math.min(n,300)}`};
 async function candles(s,t,ex,n){ex=ex||D.ex;const j=await (await fetch(KU[ex](s,t,n||300))).json(),m=x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]});return ex==='Binance'?j.map(m):ex==='Bybit'?j.result.list.reverse().map(m):j.data.reverse().map(m)}
 const ema=(a,p)=>{const k=2/(p+1);let e=a[0];return a.map(v=>e=v*k+e*(1-k))};
-let LA=[],VW={n:80,off:0},CR=null,WS=null,LT=null,LC={k:''},PT=new Map(),RAF=0;
+let IND=true,LA=[],VW={n:80,off:0},CR=null,WS=null,LT=null,LC={k:''},PT=new Map(),RAF=0;
+const stl=(k,p,m)=>{const o=[];let a=0,up=0,dn=0,tr=1;for(let i=0;i<k.length;i++){const t=i?Math.max(k[i].h-k[i].l,Math.abs(k[i].h-k[i-1].c),Math.abs(k[i].l-k[i-1].c)):k[i].h-k[i].l;a=i?(a*(p-1)+t)/p:t;const h2=(k[i].h+k[i].l)/2;let u=h2-m*a,d=h2+m*a;if(i){const pu=up,pd=dn;if(k[i-1].c>pu)u=Math.max(u,pu);if(k[i-1].c<pd)d=Math.min(d,pd);if(tr===-1&&k[i].c>pd)tr=1;else if(tr===1&&k[i].c<pu)tr=-1}up=u;dn=d;o.push({d:tr,l:tr===1?u:d})}return o};
 const sched=()=>{if(!RAF)RAF=requestAnimationFrame(()=>{RAF=0;draw()})};
 const fmtT=t=>{const d=new Date(t);return(CT==='1d'||CT==='1w')?d.toLocaleDateString([],{day:'numeric',month:'short'}):hm(d)};
 function draw(){const x=DX;if(!x||!LA.length)return;const cv=$('cv'),r=devicePixelRatio||1,W=cv.clientWidth,Hh=Math.round(Math.max(320,innerHeight*.52));
@@ -197,6 +198,7 @@ function draw(){const x=DX;if(!x||!LA.length)return;const cv=$('cv'),r=devicePix
  for(let j=i0;j<i1;j++){const c=LA[j];g.fillStyle=c.c>=c.o?'rgba(14,203,129,.25)':'rgba(246,70,93,.25)';const vh=(c.v||0)/mv*h*.16;g.fillRect(X(j)-cw*.4,T+h-vh,cw*.8,vh)}
  for(let j=i0;j<i1;j++){const c=LA[j],cx=X(j);g.strokeStyle=g.fillStyle=c.c>=c.o?'#0ecb81':'#f6465d';g.beginPath();g.moveTo(cx,Y(c.h));g.lineTo(cx,Y(c.l));g.stroke();const y1=Y(Math.max(c.o,c.c)),y2=Y(Math.min(c.o,c.c));g.fillRect(cx-cw*.35,y1,Math.max(1,cw*.7),Math.max(1,y2-y1))}
  const cl=LA.map(c=>c.c);[[20,'#f0b90b'],[50,'#5b9bff'],[200,'#b07cff']].forEach(([p,col])=>{const e=ema(cl,p);g.strokeStyle=col;g.beginPath();let on=0;for(let j=i0;j<i1;j++){on?g.lineTo(X(j),Y(e[j])):g.moveTo(X(j),Y(e[j]));on=1}g.stroke()});
+  if(IND){const sv=stl(LA,2,2);g.lineWidth=1.8;let pv=null;for(let j=i0;j<i1;j++){const s=sv[j];g.strokeStyle=s.d>0?'#0ecb81':'#f6465d';if(pv&&pv.d===s.d){g.beginPath();g.moveTo(X(j-1),Y(pv.l));g.lineTo(X(j),Y(s.l));g.stroke()}pv=s}g.lineWidth=1;g.strokeStyle='rgba(91,155,255,.9)';[1,-1].forEach(sd=>{g.beginPath();let on=0;for(let j=Math.max(i0,10);j<i1;j++){const w=cl.slice(j-10,j+1),mu=w.reduce((a,b)=>a+b,0)/11,sv2=Math.sqrt(w.reduce((a,b)=>a+(b-mu)*(b-mu),0)/11),v=mu+sd*3*sv2;on?g.lineTo(X(j),Y(v)):g.moveTo(X(j),Y(v));on=1}g.stroke()})}
  const lv=x.plain?[]:[['دخول',x.entry,'#f0b90b'],['وقف',x.sl,'#f6465d'],['هدف 1',x.tp1,'#0ecb81'],['هدف 2',x.tp2,'#0ecb81'],['هدف 3',x.tp3,'#0ecb81']];
  lv.forEach(([nm,v,col])=>{const yy=Y(v);if(yy<T||yy>T+h)return;g.strokeStyle=col;g.setLineDash([6,4]);g.beginPath();g.moveTo(L,yy);g.lineTo(W-R,yy);g.stroke();g.setLineDash([]);g.fillStyle=col;g.fillRect(W-R,yy-8,R,16);g.fillStyle='#0b0e11';g.fillText(nm+' '+fmt(v),W-R+3,yy+4);g.fillStyle=col;g.fillText(nm,L+4,yy-3)});
  const lcol=lc>=last.o?'#0ecb81':'#f6465d',ly=Y(lc);g.strokeStyle=lcol;g.setLineDash([2,3]);g.beginPath();g.moveTo(L,ly);g.lineTo(W-R,ly);g.stroke();g.setLineDash([]);g.fillStyle=lcol;g.fillRect(W-R,ly-8,R,16);g.fillStyle='#fff';g.fillText(fmt(lc),W-R+4,ly+4);
@@ -232,11 +234,11 @@ cvE.addEventListener('pointerup',pend);cvE.addEventListener('pointercancel',e=>{
 cvE.addEventListener('wheel',e=>{e.preventDefault();VW.n*=e.deltaY>0?1.1:.9;sched()},{passive:false});
 async function detail(x,t){DX=x;if(t)CT=t;$('dm').classList.add('on');
  $('dh').innerHTML=`<b class="sym">${x.sym}</b> <span class="bd">${x.long?'شراء LONG':'بيع SHORT'}</span> <span class="tag">${x.score<cfg.min?'فرصة محتملة (لم تكتمل)':'فرصة مكتملة'}</span>`;
- if(x.plain)$('dh').innerHTML=`<b class="sym">${x.sym}</b> <span class="tag">عرض السوق</span>`;$('dt2').innerHTML=['1m','5m','15m','30m','1h','4h','1d','1w'].map(f=>`<button data-t="${f}" class="${f===CT?'on':''}">${f}</button>`).join('')+'<button data-z="1">＋</button><button data-z="-1">－</button><button data-z="0">⟲</button>';
+ if(x.plain)$('dh').innerHTML=`<b class="sym">${x.sym}</b> <span class="tag">عرض السوق</span>`;$('dt2').innerHTML=['1m','5m','15m','30m','1h','4h','1d','1w'].map(f=>`<button data-t="${f}" class="${f===CT?'on':''}">${f}</button>`).join('')+'<button data-z="1">＋</button><button data-z="-1">－</button><button data-z="0">⟲</button><button data-z="i">BB+ST</button>';
  $('dx').innerHTML=exch(x.sym);$('dw').innerHTML=x.why.map(w=>`<em>${w}</em>`).join('');
  $('dl').innerHTML=x.plain?'':`<div class="e"><span>الدخول</span><b>${fmt(x.entry)}</b></div><div class="s"><span>وقف الخسارة</span><b>${fmt(x.sl)}</b></div><div class="p"><span>هدف 1</span><b>${fmt(x.tp1)}</b></div><div class="p"><span>هدف 2</span><b>${fmt(x.tp2)}</b></div><div class="p"><span>هدف 3</span><b>${fmt(x.tp3)}</b></div>`;
  startLive(x)}
-$('dc').onclick=()=>{$('dm').classList.remove('on');DX=null;clearInterval(LT);wsClose()};$('dt2').onclick=e=>{const t=e.target.dataset.t,z=e.target.dataset.z;if(z!==undefined){if(z==='0')VW={n:80,off:0};else VW.n=Math.max(15,Math.min(400,VW.n*(+z>0?.8:1.25)));CR=null;sched();return}t&&DX&&detail(DX,t)};
+$('dc').onclick=()=>{$('dm').classList.remove('on');DX=null;clearInterval(LT);wsClose()};$('dt2').onclick=e=>{const t=e.target.dataset.t,z=e.target.dataset.z;if(z!==undefined){if(z==='i')IND=!IND;else if(z==='0')VW={n:80,off:0};else VW.n=Math.max(15,Math.min(400,VW.n*(+z>0?.8:1.25)));CR=null;sched();return}t&&DX&&detail(DX,t)};
 function tick(){
   if(!A){$('stt').textContent='افتح من داخل التطبيق';return}
   const raw=A.get(),b=A.busy();D=JSON.parse(raw);
@@ -246,6 +248,6 @@ function tick(){
 }
 $('rf').onclick=()=>A&&A.scan();
 $('sg').onclick=e=>{const f=e.target.dataset.f;if(!f)return;F=f;[...$('sg').children].forEach(x=>x.classList.toggle('on',x===e.target));opp()};
-if(![50,60,70].includes(cfg.min))cfg.min=60;sync();push();loadAv();news();setInterval(()=>$('v5').classList.contains('on')&&news(),300000);sess();setInterval(sess,30000);tick();setInterval(tick,3000);setInterval(prices,10000);
+if(![50,60,70].includes(cfg.min))cfg.min=60;if(cfg.risk>3)cfg.risk=3;sync();push();loadAv();news();setInterval(()=>$('v5').classList.contains('on')&&news(),300000);sess();setInterval(sess,30000);tick();setInterval(tick,3000);setInterval(prices,10000);
 window.goBack=()=>{if($('dm').classList.contains('on')){$('dc').click();return true}if(!$('v1').classList.contains('on')){$('nv').children[0].click();return true}return false};
 </script></body></html>
