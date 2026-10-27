@@ -82,9 +82,50 @@ nav{background:rgba(16,30,38,.95);backdrop-filter:blur(10px)}nav button{font-siz
 nav button{font-size:10.5px}
 .stg{font-size:11px;color:var(--acc);border:1px solid var(--line);border-radius:8px;padding:1px 7px;margin-inline-start:6px}
 #exb button{line-height:1.5}#exb small{color:var(--mut)}#exb svg{vertical-align:-2px;margin-inline-end:4px}
+
+/* ===== التصميم الاحترافي الجديد ===== */
+@property --p{syntax:'<percentage>';inherits:false;initial-value:0%}
+:root{--bg:#070b14;--card:#0f1829;--c2:#16223a;--line:#243452;--tx:#eaf0ff;--mut:#8d9bbb;--long:#2ee6a6;--short:#ff5c7a;--acc:#ffc857;--vio:#7c5cff;--cy:#3ec6ff}
+body{background:radial-gradient(900px 500px at 85% -120px,rgba(124,92,255,.28),transparent 60%),radial-gradient(700px 400px at -10% 35%,rgba(62,198,255,.12),transparent 60%),var(--bg);background-attachment:fixed;padding-bottom:108px}
+header{background:linear-gradient(180deg,rgba(7,11,20,.94),rgba(7,11,20,.72));backdrop-filter:blur(14px);border-bottom:1px solid rgba(124,92,255,.2)}
+h1{display:flex;align-items:center;gap:10px;font-size:21px}
+h1{background:linear-gradient(90deg,#fff,#b9a8ff 50%,#6fdcff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.lg{width:30px;height:30px;border-radius:10px;flex:none;position:relative;background:conic-gradient(from 210deg,var(--vio),var(--cy),var(--long),var(--vio));animation:spin 8s linear infinite;box-shadow:0 0 18px rgba(124,92,255,.6)}
+.lg::after{content:"";position:absolute;inset:4px;border-radius:7px;background:#0b1224}
+#rf{background:linear-gradient(135deg,var(--vio),var(--cy));color:#fff;border-radius:14px;box-shadow:0 6px 20px rgba(124,92,255,.45);position:relative;overflow:hidden}
+#rf::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:shine 3.5s infinite}
+button{transition:transform .15s,background .25s,border-color .25s}button:active{transform:scale(.96)}
+.tk{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 0;scrollbar-width:none}.tk::-webkit-scrollbar{display:none}
+.ti{flex:none;display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:6px 10px;font-size:12px}.ti b{color:#fff}.ti em{font-style:normal;font-weight:700}
+.v.on{animation:vIn .4s ease}
+.mon .dot{position:relative}.mon .dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--long);animation:ping 1.6s infinite}
+.t{background:linear-gradient(160deg,rgba(22,34,58,.9),rgba(12,20,36,.9));border-radius:16px;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.t b{font-size:27px;background:linear-gradient(135deg,#fff,var(--cy));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.seg button.on{background:linear-gradient(135deg,rgba(124,92,255,.38),rgba(62,198,255,.22));border-color:var(--vio);color:#fff}
+.c{background:linear-gradient(160deg,rgba(25,38,66,.88),rgba(12,20,36,.94));border:1px solid rgba(124,92,255,.16);border-radius:20px;box-shadow:0 14px 34px rgba(0,0,0,.42);position:relative;overflow:hidden}
+.c.L{border-color:rgba(46,230,166,.3);box-shadow:0 14px 34px rgba(0,0,0,.42),0 0 28px rgba(46,230,166,.08)}
+.c.S{border-color:rgba(255,92,122,.3);box-shadow:0 14px 34px rgba(0,0,0,.42),0 0 28px rgba(255,92,122,.08)}
+.sym{font-size:22px;letter-spacing:.3px}
+.ring{width:58px;height:58px;font-size:19px;background:conic-gradient(from -90deg,var(--acc) var(--p),rgba(255,255,255,.08) 0);animation:ringIn 1.2s cubic-bezier(.2,.8,.2,1) both;filter:drop-shadow(0 0 8px rgba(255,200,87,.35))}
+.ring::after{background:#0d1526}.ring.sm{width:36px;height:36px;font-size:13px}
+.gAp{background:rgba(255,209,102,.18);color:#ffd166;box-shadow:0 0 12px rgba(255,209,102,.3)}
+.stx.a{animation:glow 2.4s ease-in-out infinite}
+.g div{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px}
+.row2 .ch{background:linear-gradient(135deg,var(--vio),var(--cy));color:#fff}
+#list.fresh .c{animation:fadeUp .6s cubic-bezier(.2,.8,.2,1) both}
+#list.fresh .c:nth-child(2){animation-delay:.08s}#list.fresh .c:nth-child(3){animation-delay:.16s}#list.fresh .c:nth-child(4){animation-delay:.24s}#list.fresh .c:nth-child(n+5){animation-delay:.3s}
+.hr,.nc,.f,.tg{background:linear-gradient(160deg,rgba(22,34,58,.8),rgba(12,20,36,.85));border-radius:14px}
+nav{inset-inline:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));border-radius:26px;border:1px solid rgba(124,92,255,.28);background:rgba(11,17,32,.86);backdrop-filter:blur(16px);box-shadow:0 12px 40px rgba(0,0,0,.6);padding:6px}
+nav button{display:flex;flex-direction:column;align-items:center;gap:1px;border-radius:18px;transition:.25s}
+nav button span{font-size:19px;pointer-events:none;transition:.25s}
+nav button.on{background:linear-gradient(135deg,rgba(124,92,255,.34),rgba(62,198,255,.18));color:#fff}nav button.on span{transform:translateY(-2px) scale(1.2)}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes shine{0%,60%{left:-60%}100%{left:130%}}
+@keyframes vIn{from{opacity:0;transform:translateY(12px)}}@keyframes fadeUp{from{opacity:0;transform:translateY(26px) scale(.97)}}
+@keyframes ping{from{transform:scale(.6);opacity:1}to{transform:scale(2.1);opacity:0}}
+@keyframes ringIn{from{--p:0%}}@keyframes glow{50%{box-shadow:0 0 18px rgba(46,230,166,.4)}}
 </style></head><body>
-<header><div class="top"><h1>إشارات الفيوتشرز</h1><button id="rf">فحص الآن</button></div>
-<div id="st"><span class="dot" id="dt"></span><span id="stt">جاري التحميل...</span></div><div class="ses" id="ses"></div></header>
+<header><div class="top"><h1><i class="lg"></i>إشارات الفيوتشرز</h1><button id="rf">فحص الآن</button></div>
+<div id="st"><span class="dot" id="dt"></span><span id="stt">جاري التحميل...</span></div><div class="ses" id="ses"></div></header><div class="tk" id="tk"></div>
 
 <section class="v on" id="v1"><div class="mon"><i class="dot"></i> المراقبة المستمرة شغّالة • الفحص والتتبع شغّالين حتى والتطبيق مسكّر</div>
 
@@ -100,13 +141,13 @@ nav button{font-size:10.5px}
 <div class="sh">إدارة المخاطر</div><div class="f"><label>رأس المال (USDT)</label><input id="cc" type="number" inputmode="decimal"></div><div class="f"><label>المخاطرة لكل صفقة (%) • حد أقصى 3%</label><input id="cr" type="number" inputmode="decimal" step="0.1" max="3"></div>
 <div class="sh">التنبيهات</div><label class="tg"><span>🔔 ظهور فرصة جديدة</span><input type="checkbox" id="ns"></label><label class="tg"><span>🎯 تحقق هدف</span><input type="checkbox" id="nt"></label><label class="tg"><span>🛑 ضرب وقف الخسارة</span><input type="checkbox" id="nl"></label>
 <div class="sh">الشارت</div><div class="f"><label>الفريم الافتراضي</label><select id="ctf"><option>1m</option><option>5m</option><option>15m</option><option>30m</option><option>1h</option><option>4h</option><option>1d</option><option>1w</option></select></div>
-<div class="sh">ربط Supabase (إشارات الماسح)</div><div class="f"><label>رابط المشروع</label><input id="sbu" type="text" style="direction:ltr"></div><div class="f"><label>المفتاح العام (anon public key)</label><input id="sbk" type="password" style="direction:ltr"></div><p class="nt">لو تركتهم فاضيين بيستخدم التطبيق الماسح المحلي. استخدم المفتاح العام (anon) فقط، وليس service_role.</p>
+<div class="sh">ربط Supabase (إشارات الماسح)</div><div class="f"><label>رابط المشروع</label><input id="sbu" type="text" style="direction:ltr"></div><div class="f"><label>المفتاح العام (anon public key)</label><input id="sbk" type="password" style="direction:ltr"></div><p class="nt">لو تركتهم فاضيين بيستخدم التطبيق الماسح المحلي. استخدم المفتاح العام (anon) فقط، وليس service_role.</p><p class="nt" id="sbs"></p>
 <div class="sh">البيانات</div><button class="dg" id="rs">مسح الإحصائيات والسجل</button></section>
 <section class="v" id="v4"><div class="f"><label>بحث مباشر عن أي عملة</label><input id="q" oninput="radar()" placeholder="BTC"></div><div class="seg" id="cmd"><button data-m="n" class="on">قريبة من فرصة</button><button data-m="m">كل السوق (مباشر)</button></div><div id="rd"></div></section>
 <section class="v" id="v5"><div class="f"><label>بحث بالأخبار</label><input id="nq" oninput="drawNews()" placeholder="BTC"></div><div id="nw"></div><p class="nt">الأخبار من CryptoCompare. اضغط على الخبر لفتحه.</p></section>
 <section class="v" id="v6"><div class="seg" id="exb"></div><div id="exl"></div><p class="nt">كل منصة بتعرض الفرص للعملات المتوفرة عليها. اضغط على الفرصة لعرض الشارت، وزر المنصة لفتح العقد.</p></section>
 <div id="dm"><div class="dbox"><div class="dtop"><div id="dh"></div><button id="dc">✕</button></div><div class="tfs" id="dt2"></div><canvas id="cv"></canvas><div id="cvm" class="nt"></div><div class="g" id="dl"></div><div class="ex" id="dx"></div><div class="w" id="dw"></div></div></div>
-<nav id="nv"><button data-v="1" class="on">📈 الفرص</button><button data-v="6">🏦 المنصات</button><button data-v="2">💼 صفقاتي</button><button data-v="4">🪙 العملات</button><button data-v="5">📰 الأخبار</button><button data-v="3">⚙️ الإعدادات</button></nav>
+<nav id="nv"><button data-v="1" class="on"><span>📈</span>الفرص</button><button data-v="6"><span>🏦</span>المنصات</button><button data-v="2"><span>💼</span>صفقاتي</button><button data-v="4"><span>🪙</span>العملات</button><button data-v="5"><span>📰</span>الأخبار</button><button data-v="3"><span>⚙️</span>الإعدادات</button></nav>
 <script>
 const A=window.Android,$=id=>document.getElementById(id);
 const rd=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
@@ -123,9 +164,9 @@ function track(l){let ch=0;l.forEach(x=>{const k=x.sym+x.long+x.t;if(!H.some(h=>
 const grade=s=>s>=85?'A+':s>=75?'A':s>=65?'B':'C',GL={'A+':'ممتازة','A':'قوية','B':'جيدة','C':'عادية'};
 function opp(){
   const l=D.list||[],L=l.filter(x=>x.long).length,S=l.length-L;
-  $('n1').textContent=D.total||'-';$('n2').textContent=l.length;$('n3').textContent=l.filter(x=>x.status==='active').length;
+  cu('n1',D.total||'-');cu('n2',l.length);cu('n3',l.filter(x=>x.status==='active').length);
   if(l.length){$('bl').style.width=L/l.length*100+'%';$('bs').style.width=S/l.length*100+'%';$('bias').firstChild.textContent='ميل السوق: '+(L>S?'أغلب الفرص شراء':S>L?'أغلب الفرص بيع':'متوازن')}
-  const v=l.filter(x=>F==='a'||F==='L'&&x.long||F==='S'&&!x.long||F==='A'&&x.status==='active'||F==='W'&&x.status!=='active');
+  const v=l.filter(x=>F==='a'||F==='L'&&x.long||F==='S'&&!x.long||F==='A'&&x.status==='active'||F==='W'&&x.status!=='active');const sg=F+v.map(x=>x.k||x.sym+x.long).join();if(sg!==window.LSIG){window.LSIG=sg;$('list').classList.add('fresh');setTimeout(()=>$('list').classList.remove('fresh'),1000)}
   $('list').innerHTML=D.err?`<div class="emp">${D.err}</div>`:!v.length?'<div class="emp">ما في فرص تحقق الشروط حالياً.<br>التطبيق بيفحص لحاله وبيبلغك لما تظهر فرصة.</div>':'';
   v.forEach(x=>{const c=document.createElement('div'),act=x.status==='active',g=grade(x.score);c.className='c '+(x.long?'L':'S');
  const p=P[x.sym]||x.px,pl=(x.long?p-x.entry:x.entry-p)/x.entry*100,usd=cfg.cap*cfg.risk/100,sz=usd/(Math.abs(x.entry-x.sl)/x.entry);
@@ -149,7 +190,15 @@ let SB=null,EXS_SEL='Binance';
 const SN={s1:'دعم/مقاومة تاريخي',s2:'سوبر تريند + بولنجر',s3:'كسر حقيقي/وهمي'};
 const tpsOf=x=>x.tps&&x.tps.length?x.tps:[x.tp1,x.tp2,x.tp3];
 function conv(rows){const m=r=>({k:r.k,sym:r.sym,long:r.is_long,score:r.score,why:r.why||[],entry:r.entry,sl:r.sl,tps:r.tps&&r.tps.length?r.tps:[r.tp1,r.tp2,r.tp3,r.tp4].filter(v=>v!=null),tp1:r.tp1,tp2:r.tp2,tp3:r.tp3,obl:r.zlo,obh:r.zhi,status:r.status,t:+r.t,risk:r.risk_pct,strategy:r.strategy||'s1',res:r.res,st:r.st,tg:r.tg,px:r.entry}),all=rows.map(m);all.forEach(x=>x.ntp=x.tps.length);return{tr:all,list:all.filter(x=>x.res==='wait'||x.res==='open').sort((a,b)=>b.score-a.score)}}
-async function sbSync(){const u=(cfg.sbu||'').replace(/\/$/,''),k=cfg.sbk;if(!u||!k){SB=null;return}try{const r=await fetch(`${u}/rest/v1/signals?select=*&order=created_at.desc&limit=400`,{headers:{apikey:k,Authorization:'Bearer '+k}});if(!r.ok)throw 0;SB=conv(await r.json());D.list=SB.list;D.tr=SB.tr;D.near=[];D.ex='Binance';paint()}catch(e){$('stt').textContent='تعذّر الاتصال بـ Supabase، تحقق من الرابط والمفتاح'}}
+const cu=(id,to)=>{const el=$(id),t=+to;if(!isFinite(t)){el.textContent=to;return}const f=+el.dataset.v||0;el.dataset.v=t;if(f===t){el.textContent=t;return}const t0=performance.now();(function q(n){const k=Math.min(1,(n-t0)/700);el.textContent=Math.round(f+(t-f)*(1-Math.pow(1-k,3)));k<1&&requestAnimationFrame(q)})(t0)};
+function mg(){if(!SB)return;const L=(D.list||[]).map(x=>({...x,k:x.k||x.sym+x.long+x.t,tps:x.tps||[x.tp1,x.tp2,x.tp3],ntp:3,strategy:x.strategy||'local'}));
+ D.list=SB.list.concat(L.filter(l=>!SB.list.some(q=>q.sym===l.sym&&q.long===l.long))).sort((a,b)=>b.score-a.score);D.tr=SB.tr.concat((D.tr||[]).filter(t=>!SB.tr.some(q=>q.k===t.k)))}
+function tk(){const el=$('tk');if(!el)return;el.innerHTML=['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT'].filter(q=>P[q]).map(q=>{const c=CH[q]||0;return `<div class="ti"><b>${base(q)}</b><span dir="ltr">${fmt(P[q])}</span><em class="${c>=0?'up':'dn'}">${c>=0?'▲':'▼'} ${Math.abs(c).toFixed(2)}%</em></div>`}).join('')}
+async function sbSync(){const u=(cfg.sbu||'').replace(/\/$/,''),k=cfg.sbk,e=$('sbs');if(!u||!k){SB=null;if(e)e.textContent='غير مفعّل • بيستخدم الماسح المحلي فقط';return}
+ try{const r=await fetch(`${u}/rest/v1/signals?select=*&order=created_at.desc&limit=400`,{headers:{apikey:k,Authorization:'Bearer '+k}});
+  if(!r.ok){SB=null;e.textContent='❌ خطأ '+r.status+(r.status===401||r.status===403?' • المفتاح غير صحيح':r.status===404?' • جدول signals غير موجود':'');return}
+  const rows=await r.json();SB=conv(rows);e.textContent=`✅ متصل • ${rows.length} إشارة بالقاعدة • ${SB.list.length} حيّة الآن`;cur='';tick()}
+ catch(x){SB=null;e.textContent='❌ تعذّر الوصول لـ Supabase (تحقق من الإنترنت والرابط)'}}
 function exTab(){const l=D.list||[],has=(x,n)=>(AV[base(x.sym)]||['Binance']).includes(n);
  $('exb').innerHTML=['Binance','Bybit','OKX'].map(n=>`<button data-x="${n}" class="${n===EXS_SEL?'on':''}">${EXI[n]}${n}<br><small>${l.filter(x=>has(x,n)).length} فرصة</small></button>`).join('');
  const box=$('exl'),v=l.filter(x=>has(x,EXS_SEL));box.innerHTML=v.length?'':'<div class="emp">ما في فرص على هالمنصة حالياً.</div>';
@@ -163,7 +212,7 @@ function stats(){const T=D.tr||[],tg=T.filter(x=>x.tg),w=n=>tg.filter(x=>x.st>=n
 function hist(){const T=(D.tr||[]).slice().reverse();$('hist').innerHTML=T.length?'':'<div class="emp">لسا ما في فرص مسجّلة. الفرص الجديدة بتتسجل وبتتتبّع تلقائياً.</div>';
  T.forEach(h=>{const lab=h.res==='wait'?'⏳ بانتظار الدخول':h.res==='miss'?'↗ فاتت (السعر ابتعد)':h.res==='loss'?'🛑 وقف خسارة':h.st>=3?'🎯 الهدف 3':h.st>=1?`🎯 الهدف ${h.st}${h.res==='open'?' • مفتوحة':''}`:h.res==='exp'?'⏱ انتهت بدون حسم':'⏳ مفتوحة',cl=h.res==='loss'?'dn':h.st>=1?'up':'';
   const r=document.createElement('div');r.className='hr';r.innerHTML=`<div><b>${h.sym}</b> ${h.long?'🟢':'🔴'} <small style="color:var(--mut)">${h.score}/100</small><br><small style="color:var(--mut)">${new Date(h.t).toLocaleString('ar-EG',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} • دخول ${fmt(h.entry)}</small></div><div class="${cl}">${lab}</div>`;$('hist').appendChild(r)})}
-const paint=()=>{opp();stats();hist();radar();pins();exTab()};
+const paint=()=>{opp();stats();hist();radar();pins();exTab();tk()};
 let CH={},VL={};
 async function prices(){if(!D.ex)return;try{const m={},ch={},vl={};
  if(D.ex==='Binance')(await (await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr')).json()).forEach(x=>{m[x.symbol]=+x.lastPrice;ch[x.symbol]=+x.priceChangePercent;vl[x.symbol]=+x.quoteVolume});
@@ -270,7 +319,7 @@ async function detail(x,t){DX=x;if(t)CT=t;$('dm').classList.add('on');
 $('dc').onclick=()=>{$('dm').classList.remove('on');DX=null;clearInterval(LT);wsClose()};$('dt2').onclick=e=>{const t=e.target.dataset.t,z=e.target.dataset.z;if(z!==undefined){if(z==='i')IND=!IND;else if(z==='0')VW={n:80,off:0};else VW.n=Math.max(15,Math.min(400,VW.n*(+z>0?.8:1.25)));CR=null;sched();return}t&&DX&&detail(DX,t)};
 function tick(){
   if(!A){$('stt').textContent='افتح من داخل التطبيق';return}
-  const raw=A.get(),b=A.busy();D=JSON.parse(raw);if(SB){D.list=SB.list;D.tr=SB.tr;D.near=[];D.ex='Binance'}
+  const raw=A.get(),b=A.busy();D=JSON.parse(raw);mg();D.ex=D.ex||'Binance'
   $('dt').className='dot'+(b?' b':'');$('rf').disabled=b;
   $('stt').textContent=b?'جاري فحص السوق...':D.time?`آخر تحديث ${new Date(D.time).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})} • ${D.ex}`:'بانتظار أول فحص...';
   if(raw!==cur){cur=raw;paint();prices()}
