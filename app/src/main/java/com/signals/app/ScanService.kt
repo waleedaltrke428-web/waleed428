@@ -292,7 +292,7 @@ class ScanService : Service() {
         if (u.isEmpty() || k.isEmpty()) return
         val c = URL("$u/rest/v1/signals?select=k,sym,is_long,entry,score,st,res&order=created_at.desc&limit=200").openConnection()
         c.connectTimeout = 15000; c.readTimeout = 20000
-        c.setRequestProperty("apikey", k); c.setRequestProperty("Authorization", "Bearer $k")
+        c.setRequestProperty("apikey", k); c.setRequestProperty("Authorization", "Bearer waleedatrke428@waleedatrke428")
         val arr = JSONArray(c.getInputStream().bufferedReader().use { it.readText() })
         val old = JSONObject(prefs().getString("rs", "{}") ?: "{}")
         val first = old.length() == 0
