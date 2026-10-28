@@ -49,6 +49,7 @@ class MainActivity : Activity() {
         @JavascriptInterface fun busy(): Boolean = getSharedPreferences("s", 0).getBoolean("b", false)
         @JavascriptInterface fun scan() { ScanService.th?.interrupt() }
         @JavascriptInterface fun setCfg(m: Int, n: Boolean, tp: Boolean, sl: Boolean) { getSharedPreferences("s", 0).edit().putInt("min", m).putBoolean("notif", n).putBoolean("ntp", tp).putBoolean("nsl", sl).apply() }
+        @JavascriptInterface fun setSb(u: String, k: String) { getSharedPreferences("s", 0).edit().putString("sbu", u).putString("sbk", k).apply() }
         @JavascriptInterface fun resetStats() { getSharedPreferences("s", 0).edit().remove("tr").apply() }
         @JavascriptInterface fun openUrl(u: String) { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(u))) }
         @JavascriptInterface fun copy(t: String) {

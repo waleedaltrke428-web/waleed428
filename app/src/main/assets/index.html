@@ -137,7 +137,7 @@ nav button.on{background:linear-gradient(135deg,rgba(124,92,255,.34),rgba(62,198
 
 <section class="v" id="v2"><div class="sh">📌 صفقاتي المتابَعة</div><div id="pins"></div><div class="sh">الأداء</div><div class="stats" id="sg2"></div><div class="bias" id="wr"></div><div class="sh">سجل الفرص</div><div id="hist"></div><p class="nt">النتائج محسوبة من شموع 15 دقيقة بعد ظهور الفرصة. عند وقوع الوقف والهدف بنفس الشمعة بتنحسب خسارة (تحفظاً). بعد الهدف 1 بيعتبر الوقف عند الدخول.</p></section>
 <section class="v" id="v3">
-<div class="sh">الفرص</div><div class="f"><label>أقل قوة للفرصة</label><select id="cm"><option value="50">50 من 100 (فرص أكثر)</option><option value="60">60 من 100 (متوازن)</option><option value="70">70 من 100 (الأقوى)</option></select></div>
+<div class="sh">الفرص</div><div class="f"><label>أقل تقييم لإشعارات الفرص (الترتيب بالتطبيق دايماً الأفضل أولاً)</label><select id="cm"><option value="50">50 من 100 (فرص أكثر)</option><option value="60">60 من 100 (متوازن)</option><option value="70">70 من 100 (الأقوى)</option></select></div>
 <div class="sh">إدارة المخاطر</div><div class="f"><label>رأس المال (USDT)</label><input id="cc" type="number" inputmode="decimal"></div><div class="f"><label>المخاطرة لكل صفقة (%) • حد أقصى 3%</label><input id="cr" type="number" inputmode="decimal" step="0.1" max="3"></div>
 <div class="sh">التنبيهات</div><label class="tg"><span>🔔 ظهور فرصة جديدة</span><input type="checkbox" id="ns"></label><label class="tg"><span>🎯 تحقق هدف</span><input type="checkbox" id="nt"></label><label class="tg"><span>🛑 ضرب وقف الخسارة</span><input type="checkbox" id="nl"></label>
 <div class="sh">الشارت</div><div class="f"><label>الفريم الافتراضي</label><select id="ctf"><option>1m</option><option>5m</option><option>15m</option><option>30m</option><option>1h</option><option>4h</option><option>1d</option><option>1w</option></select></div>
@@ -151,10 +151,10 @@ nav button.on{background:linear-gradient(135deg,rgba(124,92,255,.34),rgba(62,198
 <script>
 const A=window.Android,$=id=>document.getElementById(id);
 const rd=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-let cur='',F='a',D={},P={},H=rd('h')||[],cfg=Object.assign({cap:1000,risk:1,min:60,nSig:1,nTp:1,nSl:1,tf:'15m',sbu:'https://ddcetignmcotplnkusja.supabase.co',sbk:''},rd('cfg')||{});
+let cur='',F='a',D={},P={},H=rd('h')||[],cfg=Object.assign({cap:1000,risk:1.5,min:60,nSig:1,nTp:1,nSl:1,tf:'15m',sbu:'https://ddcetignmcotplnkusja.supabase.co',sbk:''},rd('cfg')||{});
 const fmt=x=>{const a=Math.abs(x);return a>=100?x.toFixed(2):a>=1?x.toFixed(4):a>=.01?x.toFixed(5):x.toPrecision(4)};
 const msg=x=>`${x.long?'🟢 شراء (LONG)':'🔴 بيع (SHORT)'} #${x.sym}\nنوع الدخول: Limit عند ${fmt(x.entry)}\nمنطقة الدعم/المقاومة: ${fmt(x.obl)}–${fmt(x.obh)}${tpsOf(x).map((v,i)=>'\nالهدف '+(i+1)+': '+fmt(v)).join('')}\nوقف الخسارة: ${fmt(x.sl)}\nالأسباب: ${x.why.join(' + ')}\nالقوة: ${x.score}/100\nبعد الهدف 1 حرّك الوقف لنقطة الدخول\n⚠️ ليست نصيحة مالية`;
-function push(){A&&A.setCfg(+cfg.min,!!cfg.nSig,!!cfg.nTp,!!cfg.nSl)}
+function push(){A&&A.setCfg(+cfg.min,!!cfg.nSig,!!cfg.nTp,!!cfg.nSl);A&&A.setSb&&A.setSb(cfg.sbu||'',cfg.sbk||'')}
 function sync(){$('cm').value=cfg.min;$('cc').value=cfg.cap;$('cr').value=cfg.risk;$('ns').checked=!!cfg.nSig;$('nt').checked=!!cfg.nTp;$('nl').checked=!!cfg.nSl;$('ctf').value=cfg.tf;CT=cfg.tf;$('sbu').value=cfg.sbu||'';$('sbk').value=cfg.sbk||''}
 ['cm','cc','cr','ns','nt','nl','ctf','sbu','sbk'].forEach(id=>$(id).onchange=()=>{cfg={sbu:$('sbu').value.trim(),sbk:$('sbk').value.trim(),min:+$('cm').value,cap:+$('cc').value||1000,risk:Math.min(3,+$('cr').value||1),nSig:+$('ns').checked,nTp:+$('nt').checked,nSl:+$('nl').checked,tf:$('ctf').value};wr('cfg',cfg);push();sbSync();paint()});
 let RQ=0;$('rs').onclick=()=>{if(!RQ){RQ=1;$('rs').textContent='اضغط مرة ثانية للتأكيد';setTimeout(()=>{RQ=0;$('rs').textContent='مسح الإحصائيات والسجل'},4000);return}RQ=0;A&&A.resetStats();D.tr=[];$('rs').textContent='مسح الإحصائيات والسجل';paint()};
@@ -187,12 +187,11 @@ function pins(){const b=$('pins');if(!b)return;b.innerHTML=PIN.length?'':'<div c
   r.innerHTML=`<div><b>${base(p.sym)}</b> ${p.long?'🟢':'🔴'} <small style="color:var(--mut)">دخول ${fmt(p.entry)} • وقف ${fmt(p.sl)}</small><br><small class="${cl}">${lb}</small>${px&&!done&&act?` <small class="${pl>=0?'up':'dn'}">${pl>=0?'+':''}${pl.toFixed(2)}%</small>`:''}${px&&!done&&!act?` <small style="color:var(--mut)">• يبعد ${(Math.abs(px-p.entry)/px*100).toFixed(2)}%</small>`:''}</div><div style="display:flex;gap:6px"><button class="mb">📈</button><button class="mb">✕</button></div>`;
   const [c1,c2]=r.querySelectorAll('button');c1.onclick=()=>detail(p);c2.onclick=()=>{PIN=PIN.filter(q=>q.k!==p.k);wr('pin',PIN);pins()};b.appendChild(r)})}
 let SB=null,EXS_SEL='Binance';
-const SN={s1:'دعم/مقاومة تاريخي',s2:'سوبر تريند + بولنجر',s3:'كسر حقيقي/وهمي'};
+const SN={official:'الاستراتيجية الرسمية'};
 const tpsOf=x=>x.tps&&x.tps.length?x.tps:[x.tp1,x.tp2,x.tp3];
-function conv(rows){const m=r=>({k:r.k,sym:r.sym,long:r.is_long,score:r.score,why:r.why||[],entry:r.entry,sl:r.sl,tps:r.tps&&r.tps.length?r.tps:[r.tp1,r.tp2,r.tp3,r.tp4].filter(v=>v!=null),tp1:r.tp1,tp2:r.tp2,tp3:r.tp3,obl:r.zlo,obh:r.zhi,status:r.status,t:+r.t,risk:r.risk_pct,strategy:r.strategy||'s1',res:r.res,st:r.st,tg:r.tg,px:r.entry}),all=rows.map(m);all.forEach(x=>x.ntp=x.tps.length);return{tr:all,list:all.filter(x=>x.res==='wait'||x.res==='open').sort((a,b)=>b.score-a.score)}}
+function conv(rows){rows=rows.filter(r=>(r.strategy||'official')==='official');const m=r=>({k:r.k,sym:r.sym,long:r.is_long,score:r.score,why:r.why||[],entry:r.entry,sl:r.sl,tps:r.tps&&r.tps.length?r.tps:[r.tp1,r.tp2,r.tp3,r.tp4].filter(v=>v!=null),tp1:r.tp1,tp2:r.tp2,tp3:r.tp3,obl:r.zlo,obh:r.zhi,status:r.status,t:+r.t,risk:r.risk_pct,strategy:r.strategy||'s1',res:r.res,st:r.st,tg:r.tg,px:r.entry}),all=rows.map(m);all.forEach(x=>x.ntp=x.tps.length);return{tr:all,list:all.filter(x=>x.res==='wait'||x.res==='open').sort((a,b)=>b.score-a.score)}}
 const cu=(id,to)=>{const el=$(id),t=+to;if(!isFinite(t)){el.textContent=to;return}const f=+el.dataset.v||0;el.dataset.v=t;if(f===t){el.textContent=t;return}const t0=performance.now();(function q(n){const k=Math.min(1,(n-t0)/700);el.textContent=Math.round(f+(t-f)*(1-Math.pow(1-k,3)));k<1&&requestAnimationFrame(q)})(t0)};
-function mg(){if(!SB)return;const L=(D.list||[]).map(x=>({...x,k:x.k||x.sym+x.long+x.t,tps:x.tps||[x.tp1,x.tp2,x.tp3],ntp:3,strategy:x.strategy||'local'}));
- D.list=SB.list.concat(L.filter(l=>!SB.list.some(q=>q.sym===l.sym&&q.long===l.long))).sort((a,b)=>b.score-a.score);D.tr=SB.tr.concat((D.tr||[]).filter(t=>!SB.tr.some(q=>q.k===t.k)))}
+function mg(){if(!cfg.sbk)return;D.list=SB?SB.list:[];D.tr=SB?SB.tr:[];D.near=[];D.total=Object.keys(P).length}
 function tk(){const el=$('tk');if(!el)return;el.innerHTML=['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT'].filter(q=>P[q]).map(q=>{const c=CH[q]||0;return `<div class="ti"><b>${base(q)}</b><span dir="ltr">${fmt(P[q])}</span><em class="${c>=0?'up':'dn'}">${c>=0?'▲':'▼'} ${Math.abs(c).toFixed(2)}%</em></div>`}).join('')}
 async function sbSync(){const u=(cfg.sbu||'').replace(/\/$/,''),k=cfg.sbk,e=$('sbs');if(!u||!k){SB=null;if(e)e.textContent='غير مفعّل • بيستخدم الماسح المحلي فقط';return}
  try{const r=await fetch(`${u}/rest/v1/signals?select=*&order=created_at.desc&limit=400`,{headers:{apikey:k,Authorization:'Bearer '+k}});

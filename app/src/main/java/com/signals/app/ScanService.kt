@@ -220,7 +220,8 @@ class ScanService : Service() {
                     prefs().edit().putBoolean("b", true).apply()
                     try { scan() } catch (x: Exception) { }
                     prefs().edit().putBoolean("b", false).apply()
-                    try { Thread.sleep(900000 - (System.currentTimeMillis() % 900000) + 20000) } catch (x: InterruptedException) { }
+                    val rem = !(prefs().getString("sbk", "") ?: "").isEmpty()
+                    try { Thread.sleep(if (rem) 180000L else 900000 - (System.currentTimeMillis() % 900000) + 20000) } catch (x: InterruptedException) { }
                 }
             }
             th!!.start()
@@ -285,7 +286,38 @@ class ScanService : Service() {
         return arr
     }
 
+    // وضع Supabase: بدل الماسح المحلي، نجيب الإشارات من القاعدة ونبعت إشعارات للجديد والأهداف والوقف
+    private fun pollRemote() {
+        val u = (prefs().getString("sbu", "") ?: "").trimEnd('/'); val k = prefs().getString("sbk", "") ?: ""
+        if (u.isEmpty() || k.isEmpty()) return
+        val c = URL("$u/rest/v1/signals?select=k,sym,is_long,entry,score,st,res&order=created_at.desc&limit=200").openConnection()
+        c.connectTimeout = 15000; c.readTimeout = 20000
+        c.setRequestProperty("apikey", k); c.setRequestProperty("Authorization", "Bearer $k")
+        val arr = JSONArray(c.getInputStream().bufferedReader().use { it.readText() })
+        val old = JSONObject(prefs().getString("rs", "{}") ?: "{}")
+        val first = old.length() == 0
+        val nw = JSONObject().put("__init", "1")
+        val nsig = prefs().getBoolean("notif", true); val ntp = prefs().getBoolean("ntp", true); val nsl = prefs().getBoolean("nsl", true)
+        for (i in 0 until arr.length()) {
+            val r = arr.getJSONObject(i); val key = r.getString("k")
+            val res = r.optString("res"); val st = r.optInt("st", 0)
+            nw.put(key, "$res|$st")
+            if (first) continue
+            val prev = old.optString(key, ""); val sym = r.getString("sym")
+            val side = if (r.optBoolean("is_long")) "شراء" else "بيع"
+            if (prev.isEmpty()) {
+                if (nsig && r.optInt("score") >= prefs().getInt("min", 60)) note(key.hashCode(), "🔔 فرصة جديدة: $sym ($side)", "الدخول ${f(r.optDouble("entry"))} • التقييم ${r.optInt("score")}")
+            } else {
+                val p = prev.split("|"); val pst = p[1].toIntOrNull() ?: 0
+                if (st > pst && ntp) note((key + "T" + st).hashCode(), "🎯 $sym حققت الهدف $st", "بعد الهدف الأول انقل الوقف لنقطة الدخول")
+                if (res == "loss" && p[0] != "loss" && nsl) note((key + "L").hashCode(), "🛑 $sym ضربت وقف الخسارة", "الدخول ${f(r.optDouble("entry"))}")
+            }
+        }
+        prefs().edit().putString("rs", nw.toString()).apply()
+    }
+
     private fun scan() {
+        if (!(prefs().getString("sbk", "") ?: "").isEmpty()) { try { pollRemote() } catch (x: Exception) { }; return }
         var ex: Ex? = null; var syms: List<String> = emptyList()
         for (e in EXS) { try { val l = e.syms(); if (l.isNotEmpty()) { ex = e; syms = l; break } } catch (x: Exception) { } }
         val e = ex ?: run { prefs().edit().putString("d", JSONObject().put("err", "تعذّر الاتصال بالمنصات").toString()).apply(); return }
