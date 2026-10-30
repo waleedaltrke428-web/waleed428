@@ -123,15 +123,16 @@ nav button.on{background:linear-gradient(135deg,rgba(124,92,255,.34),rgba(62,198
 @keyframes vIn{from{opacity:0;transform:translateY(12px)}}@keyframes fadeUp{from{opacity:0;transform:translateY(26px) scale(.97)}}
 @keyframes ping{from{transform:scale(.6);opacity:1}to{transform:scale(2.1);opacity:0}}
 @keyframes ringIn{from{--p:0%}}@keyframes glow{50%{box-shadow:0 0 18px rgba(46,230,166,.4)}}
+.p.hit{background:rgba(46,230,166,.16)!important;border-color:rgba(46,230,166,.4)!important}
 </style></head><body>
 <header><div class="top"><h1><i class="lg"></i>إشارات الفيوتشرز</h1><button id="rf">فحص الآن</button></div>
 <div id="st"><span class="dot" id="dt"></span><span id="stt">جاري التحميل...</span></div><div class="ses" id="ses"></div></header><div class="tk" id="tk"></div>
 
-<section class="v on" id="v1"><div class="mon"><i class="dot"></i> المراقبة المستمرة شغّالة • الفحص والتتبع شغّالين حتى والتطبيق مسكّر</div>
+<section class="v on" id="v1"><div class="mon" id="mon"><i class="dot"></i><span id="monT">جاري الاتصال بالخادم...</span></div>
 
 <div class="stats"><div class="t"><b id="n1">-</b><span>عملة مفحوصة</span></div><div class="t"><b id="n2">-</b><span>صفقات جاهزة</span></div><div class="t"><b id="n3">-</b><span>مفعّلة الآن</span></div></div>
 <div class="bias" id="bias">ميل السوق: بانتظار الفحص<div class="bar"><i id="bl" style="width:50%"></i><u id="bs" style="width:50%"></u></div></div>
-<div class="seg" id="sg"><button data-f="a" class="on">الكل</button><button data-f="L">شراء</button><button data-f="S">بيع</button><button data-f="A">مفعّلة</button><button data-f="W">بانتظار</button></div>
+<div class="seg" id="sg"><button data-f="a" class="on">الكل</button><button data-f="L">شراء</button><button data-f="S">بيع</button><button data-f="P">المطوّرة</button><button data-f="O">الرسمية</button></div>
 <div id="list"></div>
 <p class="nt">فحص تلقائي كل 15 دقيقة. إشارات فنية وليست نصيحة مالية، التزم بوقف الخسارة.</p></section>
 
@@ -141,9 +142,10 @@ nav button.on{background:linear-gradient(135deg,rgba(124,92,255,.34),rgba(62,198
 <div class="sh">إدارة المخاطر</div><div class="f"><label>رأس المال (USDT)</label><input id="cc" type="number" inputmode="decimal"></div><div class="f"><label>المخاطرة لكل صفقة (%) • حد أقصى 3%</label><input id="cr" type="number" inputmode="decimal" step="0.1" max="3"></div>
 <div class="sh">التنبيهات</div><label class="tg"><span>🔔 ظهور فرصة جديدة</span><input type="checkbox" id="ns"></label><label class="tg"><span>🎯 تحقق هدف</span><input type="checkbox" id="nt"></label><label class="tg"><span>🛑 ضرب وقف الخسارة</span><input type="checkbox" id="nl"></label>
 <div class="sh">الشارت</div><div class="f"><label>الفريم الافتراضي</label><select id="ctf"><option>1m</option><option>5m</option><option>15m</option><option>30m</option><option>1h</option><option>4h</option><option>1d</option><option>1w</option></select></div>
-<div class="sh">ربط Supabase (إشارات الماسح)</div><div class="f"><label>رابط المشروع</label><input id="sbu" type="text" style="direction:ltr"></div><div class="f"><label>المفتاح العام (anon public key)</label><input id="sbk" type="password" style="direction:ltr"></div><p class="nt">لو تركتهم فاضيين بيستخدم التطبيق الماسح المحلي. استخدم المفتاح العام (anon) فقط، وليس service_role.</p><p class="nt" id="sbs"></p>
-<div class="sh">البيانات</div><button class="dg" id="rs">مسح الإحصائيات والسجل</button></section>
-<section class="v" id="v4"><div class="f"><label>بحث مباشر عن أي عملة</label><input id="q" oninput="radar()" placeholder="BTC"></div><div class="seg" id="cmd"><button data-m="n" class="on">قريبة من فرصة</button><button data-m="m">كل السوق (مباشر)</button></div><div id="rd"></div></section>
+<div class="sh">ربط الخادم (Supabase)</div><div class="f"><label>رابط المشروع</label><input id="sbu" type="text" style="direction:ltr"></div><div class="f"><label>المفتاح العام (anon public key)</label><input id="sbk" type="password" style="direction:ltr"></div><p class="nt">التطبيق بيعتمد كلياً على الخادم. استخدم المفتاح العام (anon) فقط، وليس service_role.</p><p class="nt" id="sbs"></p>
+<div class="sh">عن الاستراتيجيات</div><div class="f" style="line-height:1.9;font-size:13px;color:var(--mut)"><b style="color:var(--tx)">الرسمية:</b> اتجاه 1D و4H (SMA 20/50) ← كسر مستوى على 1H مع RSI ← تأكيد 15د. وقف الأقرب بين الدعم/المقاومة و1%. أهداف 0.75R/1.5R/2.25R.<br><b style="color:var(--tx)">المطوّرة:</b> نفس الطبقات + حجم الكسر ≥ 1.5× + ADX 4س ≥ 20 + دخول ضمن 1 ATR من المستوى + وقف خلف المستوى بنصف ATR + أهداف 1R/2R/3R.<br>بعد الهدف الأول انقل الوقف لنقطة الدخول.<br><b style="color:var(--short)">تنبيه:</b> إشارات فنية وليست نصيحة مالية ولا تضمن أرباحاً. حدّد حجمك من رأس مالك، ولا تخاطر بأكتر مما تتحمل خسارته.</div>
+<div class="sh">البيانات</div><button class="dg" id="rs">إعادة ضبط الإشعارات</button></section>
+<section class="v" id="v4"><div class="f"><label>بحث مباشر عن أي عملة</label><input id="q" oninput="radar()" placeholder="BTC"></div><div id="rd"></div></section>
 <section class="v" id="v5"><div class="f"><label>بحث بالأخبار</label><input id="nq" oninput="drawNews()" placeholder="BTC"></div><div id="nw"></div><p class="nt">الأخبار من CryptoCompare. اضغط على الخبر لفتحه.</p></section>
 <section class="v" id="v6"><div class="seg" id="exb"></div><div id="exl"></div><p class="nt">كل منصة بتعرض الفرص للعملات المتوفرة عليها. اضغط على الفرصة لعرض الشارت، وزر المنصة لفتح العقد.</p></section>
 <div id="dm"><div class="dbox"><div class="dtop"><div id="dh"></div><button id="dc">✕</button></div><div class="tfs" id="dt2"></div><canvas id="cv"></canvas><div id="cvm" class="nt"></div><div class="g" id="dl"></div><div class="ex" id="dx"></div><div class="w" id="dw"></div></div></div>
@@ -153,27 +155,28 @@ const A=window.Android,$=id=>document.getElementById(id);
 const rd=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let cur='',F='a',D={},P={},H=rd('h')||[],cfg=Object.assign({cap:1000,risk:1.5,min:60,nSig:1,nTp:1,nSl:1,tf:'15m',sbu:'https://ddcetignmcotplnkusja.supabase.co',sbk:''},rd('cfg')||{});
 const fmt=x=>{const a=Math.abs(x);return a>=100?x.toFixed(2):a>=1?x.toFixed(4):a>=.01?x.toFixed(5):x.toPrecision(4)};
-const msg=x=>`${x.long?'🟢 شراء (LONG)':'🔴 بيع (SHORT)'} #${x.sym}\nنوع الدخول: Limit عند ${fmt(x.entry)}\nمنطقة الدعم/المقاومة: ${fmt(x.obl)}–${fmt(x.obh)}${tpsOf(x).map((v,i)=>'\nالهدف '+(i+1)+': '+fmt(v)).join('')}\nوقف الخسارة: ${fmt(x.sl)}\nالأسباب: ${x.why.join(' + ')}\nالقوة: ${x.score}/100\nبعد الهدف 1 حرّك الوقف لنقطة الدخول\n⚠️ ليست نصيحة مالية`;
+const msg=x=>`${x.long?'🟢 شراء (LONG)':'🔴 بيع (SHORT)'} #${x.sym}\nالدخول عند ${fmt(x.entry)}\nمنطقة الدعم/المقاومة: ${fmt(x.obl)}–${fmt(x.obh)}${tpsOf(x).map((v,i)=>'\nالهدف '+(i+1)+': '+fmt(v)).join('')}\nوقف الخسارة: ${fmt(x.sl)}\nالأسباب: ${x.why.join(' + ')}\nالقوة: ${x.score}/100\nبعد الهدف 1 حرّك الوقف لنقطة الدخول\n⚠️ ليست نصيحة مالية`;
 function push(){A&&A.setCfg(+cfg.min,!!cfg.nSig,!!cfg.nTp,!!cfg.nSl);A&&A.setSb&&A.setSb(cfg.sbu||'',cfg.sbk||'')}
 function sync(){$('cm').value=cfg.min;$('cc').value=cfg.cap;$('cr').value=cfg.risk;$('ns').checked=!!cfg.nSig;$('nt').checked=!!cfg.nTp;$('nl').checked=!!cfg.nSl;$('ctf').value=cfg.tf;CT=cfg.tf;$('sbu').value=cfg.sbu||'';$('sbk').value=cfg.sbk||''}
 ['cm','cc','cr','ns','nt','nl','ctf','sbu','sbk'].forEach(id=>$(id).onchange=()=>{cfg={sbu:$('sbu').value.trim(),sbk:$('sbk').value.trim(),min:+$('cm').value,cap:+$('cc').value||1000,risk:Math.min(3,+$('cr').value||1),nSig:+$('ns').checked,nTp:+$('nt').checked,nSl:+$('nl').checked,tf:$('ctf').value};wr('cfg',cfg);push();sbSync();paint()});
-let RQ=0;$('rs').onclick=()=>{if(!RQ){RQ=1;$('rs').textContent='اضغط مرة ثانية للتأكيد';setTimeout(()=>{RQ=0;$('rs').textContent='مسح الإحصائيات والسجل'},4000);return}RQ=0;A&&A.resetStats();D.tr=[];$('rs').textContent='مسح الإحصائيات والسجل';paint()};
+let RQ=0;$('rs').onclick=()=>{if(!RQ){RQ=1;$('rs').textContent='اضغط مرة ثانية للتأكيد';setTimeout(()=>{RQ=0;$('rs').textContent='إعادة ضبط الإشعارات'},4000);return}RQ=0;A&&A.resetStats();$('rs').textContent='إعادة ضبط الإشعارات';paint()};
 $('nv').onclick=e=>{const v=e.target.dataset.v;if(!v)return;[...$('nv').children].forEach(b=>b.classList.toggle('on',b===e.target));document.querySelectorAll('.v').forEach(s=>s.classList.toggle('on',s.id==='v'+v));scrollTo(0,0);if(v==='5')news()};
 
 function track(l){let ch=0;l.forEach(x=>{const k=x.sym+x.long+x.t;if(!H.some(h=>h.k===k)){H.unshift({k,sym:x.sym,long:x.long,entry:x.entry,sl:x.sl,tp1:x.tp1,tp2:x.tp2,tp3:x.tp3,score:x.score,time:x.t,ex:D.ex});ch=1}});if(ch){H=H.slice(0,60);wr('h',H)}}
 const grade=s=>s>=85?'A+':s>=75?'A':s>=65?'B':'C',GL={'A+':'ممتازة','A':'قوية','B':'جيدة','C':'عادية'};
 function opp(){
+  if(!cfg.sbk){$('list').innerHTML='<div class="emp">🔌 اربط التطبيق بالخادم أولاً<br><small>الصق المفتاح العام (anon) من Supabase بالإعدادات</small><br><br><button class="cp" style="max-width:240px" onclick="document.querySelector(\'nav button[data-v=3]\').click()">افتح الإعدادات</button></div>';return}
   const l=D.list||[],L=l.filter(x=>x.long).length,S=l.length-L;
-  cu('n1',D.total||'-');cu('n2',l.length);cu('n3',l.filter(x=>x.status==='active').length);
+  cu('n1',(SRV&&SRV.coins)||D.total||'-');cu('n2',l.length);cu('n3',l.filter(x=>x.status==='active').length);
   if(l.length){$('bl').style.width=L/l.length*100+'%';$('bs').style.width=S/l.length*100+'%';$('bias').firstChild.textContent='ميل السوق: '+(L>S?'أغلب الفرص شراء':S>L?'أغلب الفرص بيع':'متوازن')}
-  const v=l.filter(x=>F==='a'||F==='L'&&x.long||F==='S'&&!x.long||F==='A'&&x.status==='active'||F==='W'&&x.status!=='active');const sg=F+v.map(x=>x.k||x.sym+x.long).join();if(sg!==window.LSIG){window.LSIG=sg;$('list').classList.add('fresh');setTimeout(()=>$('list').classList.remove('fresh'),1000)}
-  $('list').innerHTML=D.err?`<div class="emp">${D.err}</div>`:!v.length?'<div class="emp">ما في فرص تحقق الشروط حالياً.<br>التطبيق بيفحص لحاله وبيبلغك لما تظهر فرصة.</div>':'';
+  const v=l.filter(x=>F==='a'||F==='L'&&x.long||F==='S'&&!x.long||F==='P'&&x.strategy==='pro'||F==='O'&&x.strategy==='official');const sg=F+v.map(x=>x.k||x.sym+x.long).join();if(sg!==window.LSIG){window.LSIG=sg;$('list').classList.add('fresh');setTimeout(()=>$('list').classList.remove('fresh'),1000)}
+  $('list').innerHTML=D.err?`<div class="emp">${D.err}</div>`:!v.length?'<div class="emp">ما في فرص حالياً.<br>الخادم بيفحص كل عملات بينانس كل 15 دقيقة. الاستراتيجية صارمة، فقد تمر ساعات بدون فرصة، وهاد طبيعي.</div>':'';
   v.forEach(x=>{const c=document.createElement('div'),act=x.status==='active',g=grade(x.score);c.className='c '+(x.long?'L':'S');
  const p=P[x.sym]||x.px,pl=(x.long?p-x.entry:x.entry-p)/x.entry*100,usd=cfg.cap*cfg.risk/100,sz=usd/(Math.abs(x.entry-x.sl)/x.entry);
  c.innerHTML=`<div class="h"><div><span class="sym">${base(x.sym)}</span><small class="qt">/USDT</small><span class="stg">${SN[x.strategy]||'محلي'}</span><div class="pl"><span class="gd g${g.replace('+','p')}">${g} • ${GL[g]}</span><span class="bd">${x.long?'شراء LONG':'بيع SHORT'}</span></div></div><div class="ring" style="--p:${x.score}%" data-s="${x.score}"></div></div>
- <div class="stx ${act?'a':'w'}">${act?'✅ مفعّلة • السعر داخل منطقة الدخول':'⏳ أمر Limit بانتظار وصول السعر للمنطقة'}<br>السعر الآن <b dir="ltr">${fmt(p)}</b>${act?` • <b class="${pl>=0?'up':'dn'}">${pl>=0?'+':''}${pl.toFixed(2)}%</b>`:` • يبعد ${(Math.abs(p-x.entry)/p*100).toFixed(2)}%`}</div>
+ <div class="stx ${act?'a':'w'}">${act?'✅ مفعّلة • قبل '+ago(x.t/1000):'⏳ أمر Limit بانتظار وصول السعر للمنطقة'}<br>السعر الآن <b dir="ltr">${fmt(p)}</b>${act?` • <b class="${pl>=0?'up':'dn'}">${pl>=0?'+':''}${pl.toFixed(2)}%</b>`:` • يبعد ${(Math.abs(p-x.entry)/p*100).toFixed(2)}%`}</div>
  <div class="ex">${exch(x.sym)}</div>
- <div class="g"><div class="e"><span>الدخول (Limit)</span><b>${fmt(x.entry)}</b></div><div class="s"><span>الوقف (${x.risk.toFixed(2)}%)</span><b>${fmt(x.sl)}</b></div>${tpsOf(x).map((v,i)=>`<div class="p"><span>هدف ${i+1} • ${(Math.abs(v-x.entry)/Math.abs(x.entry-x.sl)).toFixed(1)}R</span><b>${fmt(v)}</b></div>`).join('')}<div><span>منطقة الدعم/المقاومة</span><b>${fmt(x.obl)}–${fmt(x.obh)}</b></div></div>
+ <div class="g"><div class="e"><span>الدخول</span><b>${fmt(x.entry)}</b></div><div class="s"><span>${(x.st||0)>=1?'الوقف (انتقل للدخول)':'الوقف ('+x.risk.toFixed(2)+'%)'}</span><b>${fmt(x.sl)}</b></div>${tpsOf(x).map((v,i)=>`<div class="p ${i<(x.st||0)?'hit':''}"><span>${i<(x.st||0)?'✔ ':''}هدف ${i+1} • ${(Math.abs(v-x.entry)/Math.abs(x.entry-x.sl)).toFixed(1)}R</span><b>${fmt(v)}</b></div>`).join('')}<div><span>منطقة الدعم/المقاومة</span><b>${fmt(x.obl)}–${fmt(x.obh)}</b></div></div>
  <div class="sz">حجم الصفقة ≈ <b dir="ltr">${sz.toFixed(0)} USDT</b> (مخاطرة ${usd.toFixed(1)} USDT)</div>
  <div class="w">${x.why.map(w=>`<em>${w}</em>`).join('')}</div><div class="row2"><button class="ch">📈 الشارت</button><button class="pn">📌 تتبّع</button><button class="cp">نسخ</button></div>`;
  c.querySelector('.cp').onclick=e=>{A.copy(msg(x));e.target.textContent='تم النسخ ✓'};c.querySelector('.ch').onclick=()=>detail(x);c.querySelector('.pn').onclick=e=>{x.k=x.k||x.sym+x.long+x.t;if(!PIN.some(q=>q.k===x.k)){PIN.unshift({...x});wr('pin',PIN)}e.target.textContent='📌 متابَعة ✓';pins()};$('list').appendChild(c)})
@@ -191,13 +194,16 @@ const SN={official:'الرسمية (الوثيقة)',pro:'المطوّرة (بح
 const tpsOf=x=>x.tps&&x.tps.length?x.tps:[x.tp1,x.tp2,x.tp3];
 function conv(rows){rows=rows.filter(r=>['official','pro'].includes(r.strategy||'official'));const m=r=>({k:r.k,sym:r.sym,long:r.is_long,score:r.score,why:r.why||[],entry:r.entry,sl:r.sl,tps:r.tps&&r.tps.length?r.tps:[r.tp1,r.tp2,r.tp3,r.tp4].filter(v=>v!=null),tp1:r.tp1,tp2:r.tp2,tp3:r.tp3,obl:r.zlo,obh:r.zhi,status:r.status,t:+r.t,risk:r.risk_pct,strategy:r.strategy||'s1',res:r.res,st:r.st,tg:r.tg,px:r.entry}),all=rows.map(m);all.forEach(x=>x.ntp=x.tps.length);return{tr:all,list:all.filter(x=>x.res==='wait'||x.res==='open').sort((a,b)=>b.score-a.score)}}
 const cu=(id,to)=>{const el=$(id),t=+to;if(!isFinite(t)){el.textContent=to;return}const f=+el.dataset.v||0;el.dataset.v=t;if(f===t){el.textContent=t;return}const t0=performance.now();(function q(n){const k=Math.min(1,(n-t0)/700);el.textContent=Math.round(f+(t-f)*(1-Math.pow(1-k,3)));k<1&&requestAnimationFrame(q)})(t0)};
-function mg(){if(!cfg.sbk)return;D.list=SB?SB.list:[];D.tr=SB?SB.tr:[];D.near=[];D.total=Object.keys(P).length}
 function tk(){const el=$('tk');if(!el)return;el.innerHTML=['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT'].filter(q=>P[q]).map(q=>{const c=CH[q]||0;return `<div class="ti"><b>${base(q)}</b><span dir="ltr">${fmt(P[q])}</span><em class="${c>=0?'up':'dn'}">${c>=0?'▲':'▼'} ${Math.abs(c).toFixed(2)}%</em></div>`}).join('')}
-async function sbSync(){const u=(cfg.sbu||'').replace(/\/$/,''),k=cfg.sbk,e=$('sbs');if(!u||!k){SB=null;if(e)e.textContent='غير مفعّل • بيستخدم الماسح المحلي فقط';return}
- try{const r=await fetch(`${u}/rest/v1/signals?select=*&order=created_at.desc&limit=400`,{headers:{apikey:k,Authorization:'Bearer '+k}});
-  if(!r.ok){SB=null;e.textContent='❌ خطأ '+r.status+(r.status===401||r.status===403?' • المفتاح غير صحيح':r.status===404?' • جدول signals غير موجود':'');return}
-  const rows=await r.json();SB=conv(rows);e.textContent=`✅ متصل • ${rows.length} إشارة بالقاعدة • ${SB.list.length} حيّة الآن`;cur='';tick()}
- catch(x){SB=null;e.textContent='❌ تعذّر الوصول لـ Supabase (تحقق من الإنترنت والرابط)'}}
+async function sbSync(){const u=(cfg.sbu||'').replace(/\/$/,''),k=cfg.sbk,e=$('sbs');
+ if(!u||!k){SB=null;SRV=null;D.list=[];D.tr=[];if(e)e.textContent='غير مفعّل • الصق المفتاح العام (anon) لربط الخادم';paint();tick();return}
+ SYN=1;tick();const h={apikey:k,Authorization:'Bearer '+k};
+ try{const [r,r2]=await Promise.all([fetch(`${u}/rest/v1/signals?select=*&order=created_at.desc&limit=400`,{headers:h}),fetch(`${u}/rest/v1/scan_status?select=*&id=eq.1`,{headers:h})]);
+  if(!r.ok){SB=null;SSE=1;e.textContent='❌ خطأ '+r.status+(r.status===401||r.status===403?' • المفتاح غير صحيح':r.status===404?' • جدول signals غير موجود':'');return}
+  const rows=await r.json();SB=conv(rows);D.list=SB.list;D.tr=SB.tr;D.near=[];SRV=r2.ok?((await r2.json())[0]||null):null;SSE=0;
+  e.textContent=`✅ متصل • ${rows.length} إشارة بالقاعدة • ${SB.list.length} حيّة الآن`;paint()}
+ catch(x){SSE=1;e.textContent='❌ تعذّر الوصول للخادم (تحقق من الإنترنت والرابط)'}
+ finally{SYN=0;tick()}}
 function exTab(){const l=D.list||[],has=(x,n)=>(AV[base(x.sym)]||['Binance']).includes(n);
  $('exb').innerHTML=['Binance','Bybit','OKX'].map(n=>`<button data-x="${n}" class="${n===EXS_SEL?'on':''}">${EXI[n]}${n}<br><small>${l.filter(x=>has(x,n)).length} فرصة</small></button>`).join('');
  const box=$('exl'),v=l.filter(x=>has(x,EXS_SEL));box.innerHTML=v.length?'':'<div class="emp">ما في فرص على هالمنصة حالياً.</div>';
@@ -237,7 +243,7 @@ function sess(){const now=new Date();let o=0,x='';
  SS.forEach(([n,tz,a,b])=>{const f=tzo(tz,now),c=new Date(now.getTime()+f),wd=c.getUTCDay(),h=c.getUTCHours(),on=wd>0&&wd<6&&h>=a&&h<b,b0=Date.UTC(c.getUTCFullYear(),c.getUTCMonth(),c.getUTCDate());o+=on;S2[n]=on;
   x+=`<div class="sc ${on?'on':''}"><i></i><b>${n}</b><small>${hm(new Date(b0+a*36e5-f))}–${hm(new Date(b0+b*36e5-f))} • ${on?'مفتوحة':'مغلقة'}</small></div>`});
  $('ses').innerHTML=`<div class="sc lc"><i></i><b>🕐 ${hm(now)}</b><small>${Intl.DateTimeFormat().resolvedOptions().timeZone}</small></div>`+x+`<div class="sn">${S2['لندن']&&S2['نيويورك']?'🔥 تداخل لندن/نيويورك: سيولة عالية':o?'جلسة نشطة':'سيولة هادئة'} • الأوقات بتوقيت جوالك</div>`}
-let CM='n';
+let CM='m';
 function radar(){const q=($('q').value||'').toUpperCase().trim(),box=$('rd');box.innerHTML='';
  if(CM==='n'){const L=(D.near||[]).filter(x=>x.sym.includes(q));if(!L.length)box.innerHTML='<div class="emp">ما في عملات قريبة من فرصة حالياً.</div>';
   L.forEach(x=>{const need=[['رفض','شمعة رفض'],['RSI','RSI'],['MACD','MACD'],['حجم','حجم'],['اتجاه 4س','اتجاه 4س']].filter(([k])=>!x.why.some(w=>w.includes(k))).map(a=>a[1]);
@@ -247,7 +253,6 @@ function radar(){const q=($('q').value||'').toUpperCase().trim(),box=$('rd');box
   all.forEach(s=>{const c=CH[s]||0,sg=sgs.find(x=>x.sym===s),r=document.createElement('div');r.className='hr rr';
    r.innerHTML=`<div><b>${base(s)}</b> <small style="color:var(--mut)">${(AV[base(s)]||[D.ex]).join(' • ')}</small>${sg?`<br><small class="${sg.score>=cfg.min?'ok':'wn'}">${sg.score>=cfg.min?'فرصة':'قريبة من فرصة'} ${sg.score}/100</small>`:''}</div><div style="text-align:left"><b dir="ltr">${fmt(P[s])}</b><br><small class="${c>=0?'up':'dn'}">${c>=0?'+':''}${c.toFixed(2)}%</small></div>`;
    r.onclick=()=>detail(sg||{sym:s,plain:true,long:true,score:0,why:[]});box.appendChild(r)})}}
-$('cmd').onclick=e=>{const m=e.target.dataset.m;if(!m)return;CM=m;[...$('cmd').children].forEach(b=>b.classList.toggle('on',b===e.target));radar()};
 let NW=[];
 async function news(){try{NW=((await (await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN')).json()).Data||[]).slice(0,40);drawNews()}catch(e){$('nw').innerHTML='<div class="emp">تعذّر تحميل الأخبار</div>'}}
 const ago=t=>{const m=Math.max(1,Math.round((Date.now()/1000-t)/60));return m<60?m+' د':m<1440?Math.round(m/60)+' س':Math.round(m/1440)+' يوم'};
@@ -319,12 +324,20 @@ async function detail(x,t){DX=x;if(t)CT=t;$('dm').classList.add('on');
  $('dl').innerHTML=x.plain?'':`<div class="e"><span>الدخول</span><b>${fmt(x.entry)}</b></div><div class="s"><span>وقف الخسارة</span><b>${fmt(x.sl)}</b></div>${tpsOf(x).map((v,i)=>`<div class="p"><span>هدف ${i+1}</span><b>${fmt(v)}</b></div>`).join('')}`;
  startLive(x)}
 $('dc').onclick=()=>{$('dm').classList.remove('on');DX=null;clearInterval(LT);wsClose()};$('dt2').onclick=e=>{const t=e.target.dataset.t,z=e.target.dataset.z;if(z!==undefined){if(z==='i')IND=!IND;else if(z==='0')VW={n:80,off:0};else VW.n=Math.max(15,Math.min(400,VW.n*(+z>0?.8:1.25)));CR=null;sched();return}t&&DX&&detail(DX,t)};
+let SRV=null,SSE=0,SYN=0;
 function tick(){
   if(!A){$('stt').textContent='افتح من داخل التطبيق';return}
-  const raw=A.get(),b=A.busy();D=JSON.parse(raw);mg();D.ex=D.ex||'Binance'
-  $('dt').className='dot'+(b?' b':'');$('rf').disabled=b;
-  $('stt').textContent=b?'جاري فحص السوق...':D.time?`آخر تحديث ${new Date(D.time).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})} • ${D.ex}`:'بانتظار أول فحص...';
-  if(raw!==cur){cur=raw;paint();prices()}
+  D.ex='Binance';$('rf').disabled=!!SYN;$('dt').className='dot'+(SYN?' b':'');
+  const m=$('monT'),ag=SRV&&SRV.updated_at?Math.max(0,Math.round((Date.now()-new Date(SRV.updated_at).getTime())/60000)):null;let t,c='';
+  if(!cfg.sbk){t='غير مربوط بالخادم';c='wn'}
+  else if(SSE&&!SRV){t='تعذّر الاتصال بالخادم، تحقق من الإنترنت';c='dn'}
+  else if(!SRV){t='بانتظار أول دورة فحص من الخادم...'}
+  else if(SRV.blocked){t='⛔ منع تداول (حدث إخباري قوي)، الخادم موقّف الإشارات';c='wn'}
+  else if(ag!==null&&ag>25){t=`⚠️ الخادم ما أرسل نشاط من ${ag} دقيقة`;c='dn'}
+  else if(SRV.batches_done<SRV.batches_total){t=`الخادم عم يفحص: دفعة ${SRV.batches_done} من ${SRV.batches_total}`}
+  else{t=`الخادم شغّال • آخر دورة قبل ${ag} د • ${SRV.coins} عملة`}
+  if(m){m.textContent=t;m.className=c}
+  $('stt').textContent=SYN?'جاري التحديث...':SRV&&SRV.updated_at?`آخر تحديث للخادم ${new Date(SRV.updated_at).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}`:'—';
 }
 $('rf').onclick=()=>A&&A.scan();
 $('sg').onclick=e=>{const f=e.target.dataset.f;if(!f)return;F=f;[...$('sg').children].forEach(x=>x.classList.toggle('on',x===e.target));opp()};
