@@ -334,7 +334,7 @@ async function detail(x,t){DX=x;if(t)CT=t;$('dm').classList.add('on');
  $('dl').innerHTML=x.plain?'':`<div class="e"><span>الدخول</span><b>${fmt(x.entry)}</b></div><div class="s"><span>وقف الخسارة</span><b>${fmt(x.sl)}</b></div>${tpsOf(x).map((v,i)=>`<div class="p"><span>هدف ${i+1}</span><b>${fmt(v)}</b></div>`).join('')}`;
  startLive(x)}
 $('dc').onclick=()=>{$('dm').classList.remove('on');DX=null;clearInterval(LT);wsClose()};$('dt2').onclick=e=>{const t=e.target.dataset.t,z=e.target.dataset.z;if(z!==undefined){if(z==='i')IND=!IND;else if(z==='0')VW={n:80,off:0};else VW.n=Math.max(15,Math.min(400,VW.n*(+z>0?.8:1.25)));CR=null;sched();return}t&&DX&&detail(DX,t)};
-const SBU0='https://ddcetignmcotplnkusja.supabase.co',sb_publishable_RXQYvnafr3Eh4D1SQwOdqQ_y4e9Jwso='',https://wa.me/qr/DYC3P4XBDWIIB1='';   // للتوزيع: حط المفتاح العام (anon) هون، ورابط الدعم (تلجرام/واتساب)
+const SBU0='https://ddcetignmcotplnkusja.supabase.co',SBK0='sb_publishable_RXQYvnafr3Eh4D1SQwOdqQ_y4e9Jwso',SUPPORT='https://wa.me/qr/DYC3P4XBDWIIB1';   // للتوزيع: حط المفتاح العام (anon) هون، ورابط الدعم (تلجرام/واتساب)
 const U=()=>(cfg.sbu||SBU0).replace(/\/$/,''),K=()=>cfg.sbk||SBK0;
 const devId=()=>{let d=rd('dev');if(!d){d=(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));wr('dev',d)}return d};
 let ME=rd('me'),ACC=null;
