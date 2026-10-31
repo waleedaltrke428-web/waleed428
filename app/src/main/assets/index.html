@@ -124,11 +124,16 @@ nav button.on{background:linear-gradient(135deg,rgba(124,92,255,.34),rgba(62,198
 @keyframes ping{from{transform:scale(.6);opacity:1}to{transform:scale(2.1);opacity:0}}
 @keyframes ringIn{from{--p:0%}}@keyframes glow{50%{box-shadow:0 0 18px rgba(46,230,166,.4)}}
 .p.hit{background:rgba(46,230,166,.16)!important;border-color:rgba(46,230,166,.4)!important}
+[hidden]{display:none!important}
+#auth,#gate{position:fixed;inset:0;z-index:60;background:radial-gradient(900px 500px at 80% -100px,rgba(124,92,255,.3),transparent 60%),#070b14;display:flex;align-items:center;justify-content:center;padding:22px}
+.ob{width:100%;max-width:380px;background:linear-gradient(160deg,rgba(25,38,66,.95),rgba(12,20,36,.97));border:1px solid rgba(124,92,255,.3);border-radius:24px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center}
+.ob h2{margin:10px 0 14px}.ob input{width:100%;background:#0a1020;color:var(--tx);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;margin-bottom:10px;direction:ltr;text-align:left}
+.ob button{width:100%;margin-top:8px}.ob .lg{margin:0 auto}
 </style></head><body>
 <header><div class="top"><h1><i class="lg"></i>إشارات الفيوتشرز</h1><button id="rf">فحص الآن</button></div>
 <div id="st"><span class="dot" id="dt"></span><span id="stt">جاري التحميل...</span></div><div class="ses" id="ses"></div></header><div class="tk" id="tk"></div>
 
-<section class="v on" id="v1"><div class="mon" id="mon"><i class="dot"></i><span id="monT">جاري الاتصال بالخادم...</span></div>
+<section class="v on" id="v1"><div id="ann" class="mon" hidden style="border-color:var(--acc);color:var(--acc);background:rgba(255,200,87,.08)"></div><div class="mon" id="mon"><i class="dot"></i><span id="monT">جاري الاتصال بالخادم...</span></div>
 
 <div class="stats"><div class="t"><b id="n1">-</b><span>عملة مفحوصة</span></div><div class="t"><b id="n2">-</b><span>صفقات جاهزة</span></div><div class="t"><b id="n3">-</b><span>مفعّلة الآن</span></div></div>
 <div class="bias" id="bias">ميل السوق: بانتظار الفحص<div class="bar"><i id="bl" style="width:50%"></i><u id="bs" style="width:50%"></u></div></div>
@@ -142,13 +147,16 @@ nav button.on{background:linear-gradient(135deg,rgba(124,92,255,.34),rgba(62,198
 <div class="sh">إدارة المخاطر</div><div class="f"><label>رأس المال (USDT)</label><input id="cc" type="number" inputmode="decimal"></div><div class="f"><label>المخاطرة لكل صفقة (%) • حد أقصى 3%</label><input id="cr" type="number" inputmode="decimal" step="0.1" max="3"></div>
 <div class="sh">التنبيهات</div><label class="tg"><span>🔔 ظهور فرصة جديدة</span><input type="checkbox" id="ns"></label><label class="tg"><span>🎯 تحقق هدف</span><input type="checkbox" id="nt"></label><label class="tg"><span>🛑 ضرب وقف الخسارة</span><input type="checkbox" id="nl"></label>
 <div class="sh">الشارت</div><div class="f"><label>الفريم الافتراضي</label><select id="ctf"><option>1m</option><option>5m</option><option>15m</option><option>30m</option><option>1h</option><option>4h</option><option>1d</option><option>1w</option></select></div>
-<div class="sh">ربط الخادم (Supabase)</div><div class="f"><label>رابط المشروع</label><input id="sbu" type="text" style="direction:ltr"></div><div class="f"><label>المفتاح العام (anon public key)</label><input id="sbk" type="password" style="direction:ltr"></div><p class="nt">التطبيق بيعتمد كلياً على الخادم. استخدم المفتاح العام (anon) فقط، وليس service_role.</p><p class="nt" id="sbs"></p>
+<div class="sh">إعدادات الخادم (متقدّم)</div><div class="f"><label>رابط المشروع</label><input id="sbu" type="text" style="direction:ltr"></div><div class="f"><label>المفتاح العام (anon public key)</label><input id="sbk" type="password" style="direction:ltr"></div><p class="nt">التطبيق بيعتمد كلياً على الخادم. استخدم المفتاح العام (anon) فقط، وليس service_role.</p><p class="nt" id="sbs"></p>
+<div class="sh">حسابي</div><div class="f" id="acc" style="line-height:1.9">—</div><button class="dg" id="lo" style="margin-bottom:8px">تسجيل الخروج</button>
 <div class="sh">عن الاستراتيجيات</div><div class="f" style="line-height:1.9;font-size:13px;color:var(--mut)"><b style="color:var(--tx)">الرسمية:</b> اتجاه 1D و4H (SMA 20/50) ← كسر مستوى على 1H مع RSI ← تأكيد 15د. وقف الأقرب بين الدعم/المقاومة و1%. أهداف 0.75R/1.5R/2.25R.<br><b style="color:var(--tx)">المطوّرة:</b> نفس الطبقات + حجم الكسر ≥ 1.5× + ADX 4س ≥ 20 + دخول ضمن 1 ATR من المستوى + وقف خلف المستوى بنصف ATR + أهداف 1R/2R/3R.<br>بعد الهدف الأول انقل الوقف لنقطة الدخول.<br><b style="color:var(--short)">تنبيه:</b> إشارات فنية وليست نصيحة مالية ولا تضمن أرباحاً. حدّد حجمك من رأس مالك، ولا تخاطر بأكتر مما تتحمل خسارته.</div>
 <div class="sh">البيانات</div><button class="dg" id="rs">إعادة ضبط الإشعارات</button></section>
 <section class="v" id="v4"><div class="f"><label>بحث مباشر عن أي عملة</label><input id="q" oninput="radar()" placeholder="BTC"></div><div id="rd"></div></section>
 <section class="v" id="v5"><div class="f"><label>بحث بالأخبار</label><input id="nq" oninput="drawNews()" placeholder="BTC"></div><div id="nw"></div><p class="nt">الأخبار من CryptoCompare. اضغط على الخبر لفتحه.</p></section>
 <section class="v" id="v6"><div class="seg" id="exb"></div><div id="exl"></div><p class="nt">كل منصة بتعرض الفرص للعملات المتوفرة عليها. اضغط على الفرصة لعرض الشارت، وزر المنصة لفتح العقد.</p></section>
 <div id="dm"><div class="dbox"><div class="dtop"><div id="dh"></div><button id="dc">✕</button></div><div class="tfs" id="dt2"></div><canvas id="cv"></canvas><div id="cvm" class="nt"></div><div class="g" id="dl"></div><div class="ex" id="dx"></div><div class="w" id="dw"></div></div></div>
+<div id="auth" hidden><div class="ob"><i class="lg"></i><h2>إشارات الفيوتشرز</h2><input id="ae" type="email" placeholder="الإيميل" autocomplete="username"><input id="ap" type="password" placeholder="كلمة السر" autocomplete="current-password"><button class="ch" id="ain" style="background:linear-gradient(135deg,var(--vio),var(--cy));color:#fff;border:0;border-radius:12px;padding:12px">تسجيل الدخول</button><button class="cp" id="aup">حساب جديد (أسبوع تجريبي مجاني)</button><p id="am" class="nt" style="color:var(--short)"></p></div></div>
+<div id="gate" hidden><div class="ob"><h2 id="gt"></h2><p id="gd" class="nt" style="font-size:14px;line-height:1.8"></p><button class="ch" id="gs" style="background:linear-gradient(135deg,var(--vio),var(--cy));color:#fff;border:0;border-radius:12px;padding:12px">تواصل مع الدعم</button><button class="cp" id="gl">تسجيل الخروج</button></div></div>
 <nav id="nv"><button data-v="1" class="on"><span>📈</span>الفرص</button><button data-v="6"><span>🏦</span>المنصات</button><button data-v="2"><span>💼</span>صفقاتي</button><button data-v="4"><span>🪙</span>العملات</button><button data-v="5"><span>📰</span>الأخبار</button><button data-v="3"><span>⚙️</span>الإعدادات</button></nav>
 <script>
 const A=window.Android,$=id=>document.getElementById(id);
@@ -156,7 +164,7 @@ const rd=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null
 let cur='',F='a',D={},P={},H=rd('h')||[],cfg=Object.assign({cap:1000,risk:1.5,min:60,nSig:1,nTp:1,nSl:1,tf:'15m',sbu:'https://ddcetignmcotplnkusja.supabase.co',sbk:''},rd('cfg')||{});
 const fmt=x=>{const a=Math.abs(x);return a>=100?x.toFixed(2):a>=1?x.toFixed(4):a>=.01?x.toFixed(5):x.toPrecision(4)};
 const msg=x=>`${x.long?'🟢 شراء (LONG)':'🔴 بيع (SHORT)'} #${x.sym}\nالدخول عند ${fmt(x.entry)}\nمنطقة الدعم/المقاومة: ${fmt(x.obl)}–${fmt(x.obh)}${tpsOf(x).map((v,i)=>'\nالهدف '+(i+1)+': '+fmt(v)).join('')}\nوقف الخسارة: ${fmt(x.sl)}\nالأسباب: ${x.why.join(' + ')}\nالقوة: ${x.score}/100\nبعد الهدف 1 حرّك الوقف لنقطة الدخول\n⚠️ ليست نصيحة مالية`;
-function push(){A&&A.setCfg(+cfg.min,!!cfg.nSig,!!cfg.nTp,!!cfg.nSl);A&&A.setSb&&A.setSb(cfg.sbu||'',cfg.sbk||'')}
+function push(){A&&A.setCfg(+cfg.min,!!cfg.nSig,!!cfg.nTp,!!cfg.nSl);A&&A.setSb&&A.setSb(U(),K())}
 function sync(){$('cm').value=cfg.min;$('cc').value=cfg.cap;$('cr').value=cfg.risk;$('ns').checked=!!cfg.nSig;$('nt').checked=!!cfg.nTp;$('nl').checked=!!cfg.nSl;$('ctf').value=cfg.tf;CT=cfg.tf;$('sbu').value=cfg.sbu||'';$('sbk').value=cfg.sbk||''}
 ['cm','cc','cr','ns','nt','nl','ctf','sbu','sbk'].forEach(id=>$(id).onchange=()=>{cfg={sbu:$('sbu').value.trim(),sbk:$('sbk').value.trim(),min:+$('cm').value,cap:+$('cc').value||1000,risk:Math.min(3,+$('cr').value||1),nSig:+$('ns').checked,nTp:+$('nt').checked,nSl:+$('nl').checked,tf:$('ctf').value};wr('cfg',cfg);push();sbSync();paint()});
 let RQ=0;$('rs').onclick=()=>{if(!RQ){RQ=1;$('rs').textContent='اضغط مرة ثانية للتأكيد';setTimeout(()=>{RQ=0;$('rs').textContent='إعادة ضبط الإشعارات'},4000);return}RQ=0;A&&A.resetStats();$('rs').textContent='إعادة ضبط الإشعارات';paint()};
@@ -165,7 +173,7 @@ $('nv').onclick=e=>{const v=e.target.dataset.v;if(!v)return;[...$('nv').children
 function track(l){let ch=0;l.forEach(x=>{const k=x.sym+x.long+x.t;if(!H.some(h=>h.k===k)){H.unshift({k,sym:x.sym,long:x.long,entry:x.entry,sl:x.sl,tp1:x.tp1,tp2:x.tp2,tp3:x.tp3,score:x.score,time:x.t,ex:D.ex});ch=1}});if(ch){H=H.slice(0,60);wr('h',H)}}
 const grade=s=>s>=85?'A+':s>=75?'A':s>=65?'B':'C',GL={'A+':'ممتازة','A':'قوية','B':'جيدة','C':'عادية'};
 function opp(){
-  if(!cfg.sbk){$('list').innerHTML='<div class="emp">🔌 اربط التطبيق بالخادم أولاً<br><small>الصق المفتاح العام (anon) من Supabase بالإعدادات</small><br><br><button class="cp" style="max-width:240px" onclick="document.querySelector(\'nav button[data-v=3]\').click()">افتح الإعدادات</button></div>';return}
+  if(!ME){$('list').innerHTML='<div class="emp">🔐 سجّل الدخول أولاً<br><small>الصق المفتاح العام (anon) من Supabase بالإعدادات</small><br><br><button class="cp" style="max-width:240px" onclick="document.querySelector(\'nav button[data-v=3]\').click()">افتح الإعدادات</button></div>';return}
   const l=D.list||[],L=l.filter(x=>x.long).length,S=l.length-L;
   cu('n1',(SRV&&SRV.coins)||D.total||'-');cu('n2',l.length);cu('n3',l.filter(x=>x.status==='active').length);
   if(l.length){$('bl').style.width=L/l.length*100+'%';$('bs').style.width=S/l.length*100+'%';$('bias').firstChild.textContent='ميل السوق: '+(L>S?'أغلب الفرص شراء':S>L?'أغلب الفرص بيع':'متوازن')}
@@ -195,14 +203,16 @@ const tpsOf=x=>x.tps&&x.tps.length?x.tps:[x.tp1,x.tp2,x.tp3];
 function conv(rows){rows=rows.filter(r=>['official','pro'].includes(r.strategy||'official'));const m=r=>({k:r.k,sym:r.sym,long:r.is_long,score:r.score,why:r.why||[],entry:r.entry,sl:r.sl,tps:r.tps&&r.tps.length?r.tps:[r.tp1,r.tp2,r.tp3,r.tp4].filter(v=>v!=null),tp1:r.tp1,tp2:r.tp2,tp3:r.tp3,obl:r.zlo,obh:r.zhi,status:r.status,t:+r.t,risk:r.risk_pct,strategy:r.strategy||'s1',res:r.res,st:r.st,tg:r.tg,px:r.entry}),all=rows.map(m);all.forEach(x=>x.ntp=x.tps.length);return{tr:all,list:all.filter(x=>x.res==='wait'||x.res==='open').sort((a,b)=>b.score-a.score)}}
 const cu=(id,to)=>{const el=$(id),t=+to;if(!isFinite(t)){el.textContent=to;return}const f=+el.dataset.v||0;el.dataset.v=t;if(f===t){el.textContent=t;return}const t0=performance.now();(function q(n){const k=Math.min(1,(n-t0)/700);el.textContent=Math.round(f+(t-f)*(1-Math.pow(1-k,3)));k<1&&requestAnimationFrame(q)})(t0)};
 function tk(){const el=$('tk');if(!el)return;el.innerHTML=['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT'].filter(q=>P[q]).map(q=>{const c=CH[q]||0;return `<div class="ti"><b>${base(q)}</b><span dir="ltr">${fmt(P[q])}</span><em class="${c>=0?'up':'dn'}">${c>=0?'▲':'▼'} ${Math.abs(c).toFixed(2)}%</em></div>`}).join('')}
-async function sbSync(){const u=(cfg.sbu||'').replace(/\/$/,''),k=cfg.sbk,e=$('sbs');
- if(!u||!k){SB=null;SRV=null;D.list=[];D.tr=[];if(e)e.textContent='غير مفعّل • الصق المفتاح العام (anon) لربط الخادم';paint();tick();return}
- SYN=1;tick();const h={apikey:k,Authorization:'Bearer '+k};
+async function sbSync(){const e=$('sbs');
+ if(!ME){SB=null;SRV=null;D.list=[];D.tr=[];if(e)e.textContent='غير مسجّل دخول';paint();tick();return}
+ if(ACC&&!ACC.ok)return;
+ SYN=1;tick();const h=hdr(),u=U();
  try{const [r,r2]=await Promise.all([fetch(`${u}/rest/v1/signals?select=*&order=created_at.desc&limit=400`,{headers:h}),fetch(`${u}/rest/v1/scan_status?select=*&id=eq.1`,{headers:h})]);
-  if(!r.ok){SB=null;SSE=1;e.textContent='❌ خطأ '+r.status+(r.status===401||r.status===403?' • المفتاح غير صحيح':r.status===404?' • جدول signals غير موجود':'');return}
+  if(r.status===401){logoutUser();return}
+  if(!r.ok){SB=null;SSE=1;if(e)e.textContent='❌ خطأ '+r.status+(r.status===404?' • جدول signals غير موجود':'');return}
   const rows=await r.json();SB=conv(rows);D.list=SB.list;D.tr=SB.tr;D.near=[];SRV=r2.ok?((await r2.json())[0]||null):null;SSE=0;
-  e.textContent=`✅ متصل • ${rows.length} إشارة بالقاعدة • ${SB.list.length} حيّة الآن`;paint()}
- catch(x){SSE=1;e.textContent='❌ تعذّر الوصول للخادم (تحقق من الإنترنت والرابط)'}
+  if(e)e.textContent=`✅ متصل • ${rows.length} إشارة • ${SB.list.length} حيّة الآن`;paint()}
+ catch(x){SSE=1;if(e)e.textContent='❌ تعذّر الوصول للخادم (تحقق من الإنترنت)'}
  finally{SYN=0;tick()}}
 function exTab(){const l=D.list||[],has=(x,n)=>(AV[base(x.sym)]||['Binance']).includes(n);
  $('exb').innerHTML=['Binance','Bybit','OKX'].map(n=>`<button data-x="${n}" class="${n===EXS_SEL?'on':''}">${EXI[n]}${n}<br><small>${l.filter(x=>has(x,n)).length} فرصة</small></button>`).join('');
@@ -324,12 +334,44 @@ async function detail(x,t){DX=x;if(t)CT=t;$('dm').classList.add('on');
  $('dl').innerHTML=x.plain?'':`<div class="e"><span>الدخول</span><b>${fmt(x.entry)}</b></div><div class="s"><span>وقف الخسارة</span><b>${fmt(x.sl)}</b></div>${tpsOf(x).map((v,i)=>`<div class="p"><span>هدف ${i+1}</span><b>${fmt(v)}</b></div>`).join('')}`;
  startLive(x)}
 $('dc').onclick=()=>{$('dm').classList.remove('on');DX=null;clearInterval(LT);wsClose()};$('dt2').onclick=e=>{const t=e.target.dataset.t,z=e.target.dataset.z;if(z!==undefined){if(z==='i')IND=!IND;else if(z==='0')VW={n:80,off:0};else VW.n=Math.max(15,Math.min(400,VW.n*(+z>0?.8:1.25)));CR=null;sched();return}t&&DX&&detail(DX,t)};
+const SBU0='https://ddcetignmcotplnkusja.supabase.co',sb_publishable_RXQYvnafr3Eh4D1SQwOdqQ_y4e9Jwso='',https://wa.me/qr/DYC3P4XBDWIIB1='';   // للتوزيع: حط المفتاح العام (anon) هون، ورابط الدعم (تلجرام/واتساب)
+const U=()=>(cfg.sbu||SBU0).replace(/\/$/,''),K=()=>cfg.sbk||SBK0;
+const devId=()=>{let d=rd('dev');if(!d){d=(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));wr('dev',d)}return d};
+let ME=rd('me'),ACC=null;
+const hdr=()=>({apikey:K(),Authorization:'Bearer '+((A&&A.token&&A.token())||K()),'x-device-id':devId()});
+async function authCall(p,body){const r=await fetch(`${U()}/auth/v1/${p}`,{method:'POST',headers:{apikey:K(),'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.msg||j.message||('خطأ '+r.status));return j}
+function gotSession(j){A.setSession(j.access_token,j.refresh_token,Math.floor(Date.now()/1000)+(j.expires_in||3600),devId());ME={id:j.user.id,email:j.user.email};wr('me',ME)}
+async function doAuth(signup){const m=$('am');m.textContent='';const e=$('ae').value.trim(),w=$('ap').value;if(!e||!w){m.textContent='اكتب الإيميل وكلمة السر';return}
+ if(!K()){m.textContent='مفتاح الخادم غير مضبوط. افتح الإعدادات.';return}
+ try{let j;if(signup){if(w.length<6){m.textContent='كلمة السر 6 أحرف على الأقل';return}j=await authCall('signup',{email:e,password:w});if(!j.access_token){m.textContent='تم إنشاء الحساب. أكّد بريدك ثم سجّل الدخول.';return}}else j=await authCall('token?grant_type=password',{email:e,password:w});gotSession(j);await enter()}catch(x){m.textContent=x.message}}
+function showAuth(){$('auth').hidden=false;$('gate').hidden=true}
+function logoutUser(){A&&A.clearSession&&A.clearSession();ME=null;wr('me',null);ACC=null;SB=null;SRV=null;D.list=[];D.tr=[];paint();tick();showAuth()}
+function judge(P,bound){if(!P)return{ok:false,t:'حسابك غير مفعّل',d:'ما لقينا ملف لحسابك. تواصل مع الدعم.'};
+ if(P.status==='suspended')return{ok:false,t:'الحساب موقوف',d:'تواصل مع الدعم لمعرفة السبب.'};
+ if(!bound)return{ok:false,t:'الحساب مرتبط بجهاز تاني',d:'كل حساب بيشتغل على جهاز واحد. تواصل مع الدعم لنقله لهالجهاز.'};
+ if(P.role==='admin')return{ok:true,label:'أدمن'};
+ const sub=P.sub_ends_at?+new Date(P.sub_ends_at):0,end=Math.max(sub,+new Date(P.trial_ends_at)),days=Math.ceil((end-Date.now())/864e5);
+ if(end<=Date.now())return{ok:false,t:'انتهت فترتك',d:'انتهت الفترة التجريبية أو الاشتراك. للاشتراك تواصل مع الدعم.'};
+ return{ok:true,label:(sub>Date.now()?'اشتراك: ':'تجريبي: ')+days+' يوم'}}
+function gate(a){$('gt').textContent=a.t;$('gd').textContent=a.d;$('gate').hidden=false}
+async function enter(){if(!ME){showAuth();return}$('auth').hidden=true;
+ try{const h=hdr(),b=await fetch(`${U()}/rest/v1/rpc/bind_device`,{method:'POST',headers:{...h,'Content-Type':'application/json'},body:JSON.stringify({d:devId()})});
+  if(b.status===401){logoutUser();return}
+  const bound=b.ok?await b.json():false,pr=await fetch(`${U()}/rest/v1/profiles?select=*&id=eq.${ME.id}`,{headers:h}),P=pr.ok?(await pr.json())[0]:null;
+  ACC=judge(P,bound);$('acc').innerHTML=`${esc2(ME.email)}<br>${ACC.ok?ACC.label:'⛔ '+ACC.t}`;$('gate').hidden=ACC.ok;
+  if(ACC.ok){sbSync();annLoad()}else gate(ACC);tick()}
+ catch(e){$('stt').textContent='تعذّر الاتصال بالخادم'}}
+const esc2=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function annLoad(){try{const r=await fetch(`${U()}/rest/v1/announcements?select=body&active=eq.true&order=created_at.desc&limit=1`,{headers:hdr()});const a=r.ok?await r.json():[];const b=$('ann');b.hidden=!a.length;if(a.length)b.textContent='📢 '+a[0].body}catch(e){}}
+function boot(){if(ME&&A&&A.hasSession&&A.hasSession())enter();else{ME=null;showAuth()}}
+$('ain').onclick=()=>doAuth(false);$('aup').onclick=()=>doAuth(true);$('gl').onclick=logoutUser;$('lo').onclick=logoutUser;
+$('gs').onclick=()=>{if(SUPPORT&&A)A.openUrl(SUPPORT);else $('gd').textContent+=' (رابط الدعم غير مضبوط بالتطبيق)'};
 let SRV=null,SSE=0,SYN=0;
 function tick(){
   if(!A){$('stt').textContent='افتح من داخل التطبيق';return}
   D.ex='Binance';$('rf').disabled=!!SYN;$('dt').className='dot'+(SYN?' b':'');
   const m=$('monT'),ag=SRV&&SRV.updated_at?Math.max(0,Math.round((Date.now()-new Date(SRV.updated_at).getTime())/60000)):null;let t,c='';
-  if(!cfg.sbk){t='غير مربوط بالخادم';c='wn'}
+  if(!ME){t='سجّل الدخول للمتابعة';c='wn'}
   else if(SSE&&!SRV){t='تعذّر الاتصال بالخادم، تحقق من الإنترنت';c='dn'}
   else if(!SRV){t='بانتظار أول دورة فحص من الخادم...'}
   else if(SRV.blocked){t='⛔ منع تداول (حدث إخباري قوي)، الخادم موقّف الإشارات';c='wn'}
@@ -338,9 +380,10 @@ function tick(){
   else{t=`الخادم شغّال • آخر دورة قبل ${ag} د • ${SRV.coins} عملة`}
   if(m){m.textContent=t;m.className=c}
   $('stt').textContent=SYN?'جاري التحديث...':SRV&&SRV.updated_at?`آخر تحديث للخادم ${new Date(SRV.updated_at).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}`:'—';
+  if(ACC&&ACC.label)$('stt').textContent+=' • '+ACC.label;
 }
 $('rf').onclick=()=>A&&A.scan();
 $('sg').onclick=e=>{const f=e.target.dataset.f;if(!f)return;F=f;[...$('sg').children].forEach(x=>x.classList.toggle('on',x===e.target));opp()};
-if(![50,60,70].includes(cfg.min))cfg.min=60;if(cfg.risk>3)cfg.risk=3;sync();push();loadAv();news();sbSync();setInterval(sbSync,20000);setInterval(()=>$('v5').classList.contains('on')&&news(),300000);sess();setInterval(sess,30000);tick();setInterval(tick,3000);setInterval(prices,10000);
+if(![50,60,70].includes(cfg.min))cfg.min=60;if(cfg.risk>3)cfg.risk=3;sync();push();loadAv();news();boot();setInterval(sbSync,20000);setInterval(()=>{if(ME&&ACC)enter()},600000);setInterval(()=>$('v5').classList.contains('on')&&news(),300000);sess();setInterval(sess,30000);tick();setInterval(tick,3000);setInterval(prices,10000);
 window.goBack=()=>{if($('dm').classList.contains('on')){$('dc').click();return true}if(!$('v1').classList.contains('on')){$('nv').children[0].click();return true}return false};
 </script></body></html>

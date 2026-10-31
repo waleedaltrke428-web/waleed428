@@ -31,9 +31,11 @@ class ScanService : Service() {
 
     override fun onStartCommand(i: Intent?, fl: Int, id: Int): Int {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.createNotificationChannel(NotificationChannel("svc", "التشغيل", NotificationManager.IMPORTANCE_LOW))
-        nm.createNotificationChannel(NotificationChannel("sig", "الفرص", NotificationManager.IMPORTANCE_HIGH))
-        val n = Notification.Builder(this, "svc").setSmallIcon(android.R.drawable.ic_dialog_info)
+        if (Build.VERSION.SDK_INT >= 26) {
+            nm.createNotificationChannel(NotificationChannel("svc", "التشغيل", NotificationManager.IMPORTANCE_LOW))
+            nm.createNotificationChannel(NotificationChannel("sig", "الفرص", NotificationManager.IMPORTANCE_HIGH))
+        }
+        val n = nb("svc").setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("بيتابع الإشارات من الخادم").build()
         if (Build.VERSION.SDK_INT >= 29) startForeground(1, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC) else startForeground(1, n)
         if (th == null) {
@@ -51,19 +53,23 @@ class ScanService : Service() {
         return START_STICKY
     }
 
+    private fun nb(ch: String): Notification.Builder =
+        if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, ch) else Notification.Builder(this)
+
     private fun note(id: Int, title: String, text: String) {
         val pi = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(id,
-            Notification.Builder(this, "sig").setSmallIcon(android.R.drawable.ic_dialog_info)
+            nb("sig").setSmallIcon(android.R.drawable.ic_dialog_info).setPriority(Notification.PRIORITY_HIGH)
                 .setContentTitle(title).setContentText(text).setContentIntent(pi).setAutoCancel(true).build())
     }
 
     private fun poll() {
         val u = (prefs().getString("sbu", "") ?: "").trimEnd('/'); val k = prefs().getString("sbk", "") ?: ""
         if (u.isEmpty() || k.isEmpty()) return
+        val t = Auth.token(this); if (t.isEmpty()) return
         val c = URL("$u/rest/v1/signals?select=k,sym,is_long,entry,sl,score,st,res,strategy&order=created_at.desc&limit=200").openConnection()
         c.connectTimeout = 15000; c.readTimeout = 20000
-        c.setRequestProperty("apikey", k); c.setRequestProperty("Authorization", "Bearer w@14010090580")
+        c.setRequestProperty("apikey", k); c.setRequestProperty("Authorization", "Bearer $t"); c.setRequestProperty("x-device-id", prefs().getString("dev", "") ?: "")
         val arr = JSONArray(c.getInputStream().bufferedReader().use { it.readText() })
         val old = JSONObject(prefs().getString("rs", "{}") ?: "{}")
         val first = old.length() == 0
