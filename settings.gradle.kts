@@ -2,3 +2,4 @@ pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal()
 dependencyResolutionManagement { repositories { google(); mavenCentral() } }
 rootProject.name = "Signals"
 include(":app")
+include(":adminapp")

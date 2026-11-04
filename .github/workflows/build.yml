@@ -10,16 +10,28 @@ jobs:
       - run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: "8.9" }
-      - name: Build signed release APK
+      - name: Show project modules
+        run: |
+          echo "== settings.gradle.kts =="; cat settings.gradle.kts
+          echo "== folders =="; ls -d */
+      - name: Build signed release APKs
         run: gradle assembleRelease --no-daemon
-      - name: Build Play Store bundle (AAB)
+      - name: Build Play Store bundles (AAB)
         continue-on-error: true
         run: gradle bundleRelease --no-daemon
+      - name: Collect outputs
+        run: |
+          mkdir -p dist
+          echo "== APK files built =="; find . -name "*.apk" -not -path "./dist/*"
+          test -f app/build/outputs/apk/release/app-release.apk || { echo "USER APK MISSING"; exit 1; }
+          test -f adminapp/build/outputs/apk/release/adminapp-release.apk || { echo "ADMIN APK MISSING: تأكد إن مجلد adminapp مرفوع وإن settings.gradle.kts فيه include(\":adminapp\")"; exit 1; }
+          cp app/build/outputs/apk/release/app-release.apk dist/1-USER-app.apk
+          cp adminapp/build/outputs/apk/release/adminapp-release.apk dist/2-ADMIN-app.apk
+          cp app/build/outputs/bundle/release/app-release.aab dist/USER-playstore.aab || true
+          cp adminapp/build/outputs/bundle/release/adminapp-release.aab dist/ADMIN-playstore.aab || true
+          ls -la dist
       - uses: actions/upload-artifact@v4
         with:
-          name: signals-release
-          path: |
-            app/build/outputs/apk/release/app-release.apk
-            adminapp/build/outputs/apk/release/adminapp-release.apk
-            app/build/outputs/bundle/release/app-release.aab
-            adminapp/build/outputs/bundle/release/adminapp-release.aab
+          name: signals-apps
+          path: dist/*
+          if-no-files-found: error

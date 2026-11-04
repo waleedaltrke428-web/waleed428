@@ -164,10 +164,11 @@ nav button{position:relative}
 <section class="v" id="v7"><div class="sh">اشتراكي</div><div class="f" id="subbox" style="line-height:1.9">—</div><div class="sh">الخطط المتاحة</div><div id="plans"></div><div class="sh">طرق الدفع</div><div id="pms"></div>
 <div class="sh">💬 تواصل مع الإدارة</div><div id="chat" class="f" style="max-height:44vh;overflow:auto"></div><div class="f"><textarea id="cb" rows="2" placeholder="اكتب رسالتك للإدارة (اشتراك، دفع، مشكلة...)" style="width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit"></textarea><button class="cp" id="cs" style="margin-top:8px;background:linear-gradient(135deg,var(--vio),var(--cy));color:#fff;border:0">إرسال</button></div></section>
 <div id="dm"><div class="dbox"><div class="dtop"><div id="dh"></div><button id="dc">✕</button></div><div class="tfs" id="dt2"></div><canvas id="cv"></canvas><div id="cvm" class="nt"></div><div class="g" id="dl"></div><div class="ex" id="dx"></div><div class="w" id="dw"></div></div></div>
-<div id="auth" hidden><div class="ob"><i class="lg"></i><h2>إشارات الفيوتشرز</h2><input id="ae" type="email" placeholder="الإيميل" autocomplete="username"><input id="ap" type="password" placeholder="كلمة السر" autocomplete="current-password"><button class="ch" id="ain" style="background:linear-gradient(135deg,var(--vio),var(--cy));color:#fff;border:0;border-radius:12px;padding:12px">تسجيل الدخول</button><button class="cp" id="aup">حساب جديد (أسبوع تجريبي مجاني)</button><p id="am" class="nt" style="color:var(--short)"></p><p class="nt" style="font-size:11px;line-height:1.7">بالتسجيل بتوافق إننا نخزّن بلدك ومدينتك التقريبية (من عنوان الإنترنت) لتحديد طرق الدفع المناسبة وتحسين الدعم. إشارات فنية وليست نصيحة مالية.</p></div></div>
+<div id="auth" hidden><div class="ob"><i class="lg"></i><h2>إشارات الفيوتشرز</h2><input id="ae" type="email" placeholder="الإيميل" autocomplete="username"><input id="ap" type="password" placeholder="كلمة السر" autocomplete="current-password"><button class="ch" id="ain" style="background:linear-gradient(135deg,var(--vio),var(--cy));color:#fff;border:0;border-radius:12px;padding:12px">تسجيل الدخول</button><button class="cp" id="aup">حساب جديد (أسبوع تجريبي مجاني)</button><p id="am" class="nt" style="color:var(--short)"></p><a id="asv" style="color:var(--mut);font-size:12px;cursor:pointer">⚙️ إعدادات الخادم</a><div id="srvf" hidden style="margin-top:10px"><input id="asu" type="text" placeholder="رابط المشروع https://xxxx.supabase.co"><input id="ask" type="password" placeholder="المفتاح العام (anon public key)"></div><p class="nt" style="font-size:11px;line-height:1.7">بالتسجيل بتوافق إننا نخزّن بلدك ومدينتك التقريبية (من عنوان الإنترنت) لتحديد طرق الدفع المناسبة وتحسين الدعم. إشارات فنية وليست نصيحة مالية.</p></div></div>
 <div id="gate" hidden><div class="ob"><h2 id="gt"></h2><p id="gd" class="nt" style="font-size:14px;line-height:1.8"></p><button class="ch" id="gs" style="background:linear-gradient(135deg,var(--vio),var(--cy));color:#fff;border:0;border-radius:12px;padding:12px">تواصل مع الدعم</button><button class="cp" id="gl">تسجيل الخروج</button></div></div>
 <nav id="nv"><button data-v="1" class="on"><span>📈</span>الإشارات</button><button data-v="2"><span>💼</span>صفقاتي</button><button data-v="4"><span>🪙</span>السوق</button><button data-v="7"><span>💬</span>الدعم<b class="bdg" id="nb7" hidden></b></button><button data-v="3"><span>⚙️</span>الإعدادات</button></nav>
 <div id="toast"></div>
+<script src="config.js"></script>
 <script>
 const A=window.Android,$=id=>document.getElementById(id);
 const rd=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
@@ -345,15 +346,17 @@ async function detail(x,t){DX=x;if(t)CT=t;$('dm').classList.add('on');
  $('dl').innerHTML=x.plain?'':`<div class="e"><span>الدخول</span><b>${fmt(x.entry)}</b></div><div class="s"><span>وقف الخسارة</span><b>${fmt(x.sl)}</b></div>${tpsOf(x).map((v,i)=>`<div class="p"><span>هدف ${i+1}</span><b>${fmt(v)}</b></div>`).join('')}`;
  startLive(x)}
 $('dc').onclick=()=>{$('dm').classList.remove('on');DX=null;clearInterval(LT);wsClose()};$('dt2').onclick=e=>{const t=e.target.dataset.t,z=e.target.dataset.z;if(z!==undefined){if(z==='i')IND=!IND;else if(z==='0')VW={n:80,off:0};else VW.n=Math.max(15,Math.min(400,VW.n*(+z>0?.8:1.25)));CR=null;sched();return}t&&DX&&detail(DX,t)};
-const SBU0='https://ddcetignmcotplnkusja.supabase.co',SBK0='',SUPPORT='';   // للتوزيع: حط المفتاح العام (anon) هون، ورابط الدعم (تلجرام/واتساب)
+const CF=window.CFG||{},SBU0=CF.url||'https://ddcetignmcotplnkusja.supabase.co',SBK0=CF.anon||'',SUPPORT=CF.support||'';   // للتوزيع: حط المفتاح العام (anon) هون، ورابط الدعم (تلجرام/واتساب)
 const U=()=>(cfg.sbu||SBU0).replace(/\/$/,''),K=()=>cfg.sbk||SBK0;
 const devId=()=>{let d=rd('dev');if(!d){d=(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));wr('dev',d)}return d};
 let ME=rd('me'),ACC=null;
 const hdr=()=>({apikey:K(),Authorization:'Bearer '+((A&&A.token&&A.token())||K()),'x-device-id':devId()});
 async function authCall(p,body){const r=await fetch(`${U()}/auth/v1/${p}`,{method:'POST',headers:{apikey:K(),'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.msg||j.message||('خطأ '+r.status));return j}
 function gotSession(j){A.setSession(j.access_token,j.refresh_token,Math.floor(Date.now()/1000)+(j.expires_in||3600),devId());ME={id:j.user.id,email:j.user.email};wr('me',ME)}
-async function doAuth(signup){const m=$('am');m.textContent='';const e=$('ae').value.trim(),w=$('ap').value;if(!e||!w){m.textContent='اكتب الإيميل وكلمة السر';return}
- if(!K()){m.textContent='مفتاح الخادم غير مضبوط. افتح الإعدادات.';return}
+async function doAuth(signup){const m=$('am');m.textContent='';const e=$('ae').value.trim(),w=$('ap').value;
+ if(!$('srvf').hidden){const u=$('asu').value.trim(),k=$('ask').value.trim();if(u)cfg.sbu=u;if(k)cfg.sbk=k;wr('cfg',cfg);push()}
+ if(!e||!w){m.textContent='اكتب الإيميل وكلمة السر';return}
+ if(!K()){m.textContent='مفتاح الخادم غير مضبوط. حطّ المفتاح العام بالحقل الظاهر تحت.';$('srvf').hidden=false;$('asu').value=U();return}
  try{let j;if(signup){if(w.length<6){m.textContent='كلمة السر 6 أحرف على الأقل';return}j=await authCall('signup',{email:e,password:w});if(!j.access_token){m.textContent='تم إنشاء الحساب. أكّد بريدك ثم سجّل الدخول.';return}}else j=await authCall('token?grant_type=password',{email:e,password:w});gotSession(j);await enter()}catch(x){m.textContent=x.message}}
 function showAuth(){$('auth').hidden=false;$('gate').hidden=true}
 function logoutUser(){A&&A.clearSession&&A.clearSession();ME=null;wr('me',null);ACC=null;SB=null;SRV=null;D.list=[];D.tr=[];paint();tick();showAuth()}
@@ -375,6 +378,7 @@ async function enter(){if(!ME){showAuth();return}$('auth').hidden=true;
 const esc2=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function annLoad(){try{const r=await fetch(`${U()}/rest/v1/announcements?select=body&active=eq.true&order=created_at.desc&limit=1`,{headers:hdr()});const a=r.ok?await r.json():[];const b=$('ann');b.hidden=!a.length;if(a.length)b.textContent='📢 '+a[0].body}catch(e){}}
 function boot(){if(ME&&A&&A.hasSession&&A.hasSession())enter();else{ME=null;showAuth()}}
+$('asv').onclick=()=>{const h=$('srvf');h.hidden=!h.hidden;$('asu').value=U();$('ask').value=K()};
 $('ain').onclick=()=>doAuth(false);$('aup').onclick=()=>doAuth(true);$('gl').onclick=logoutUser;$('lo').onclick=logoutUser;
 $('gs').onclick=()=>{if(SUPPORT&&A)A.openUrl(SUPPORT);else $('gd').textContent+=' (رابط الدعم غير مضبوط بالتطبيق)'};
 let SEG='a';const EMP={a:'ما في إشارات فعّالة حالياً.<br>الخادم بيفحص كل عملات بينانس كل 15 دقيقة. الاستراتيجية صارمة، فقد تمر ساعات بدون فرصة، وهاد طبيعي.',w:'ما في إشارات بانتظار الدخول حالياً.<br><small>هون بتظهر العملات اللي انكسر مستواها وبانتظار شمعة التأكيد.</small>',n:'ما في عملات قريبة من الكسر حالياً.<br><small>هون بتظهر العملات اللي اتجاهها متوافق وقريبة من مستوى الكسر.</small>'};
