@@ -20,4 +20,6 @@ jobs:
           name: signals-release
           path: |
             app/build/outputs/apk/release/app-release.apk
+            adminapp/build/outputs/apk/release/adminapp-release.apk
             app/build/outputs/bundle/release/app-release.aab
+            adminapp/build/outputs/bundle/release/adminapp-release.aab

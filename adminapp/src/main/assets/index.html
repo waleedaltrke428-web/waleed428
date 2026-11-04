@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png">
+<title>لوحة تحكم الإشارات</title>
+<style>
+:root{--bg:#0b1020;--card:#141c34;--c2:#1b2646;--line:#2a375e;--tx:#eaf0ff;--mut:#8f9cc0;--ok:#2ee6a6;--bad:#ff5c7a;--acc:#ffc857;--vio:#7c5cff;--cy:#3ec6ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(900px 500px at 85% -100px,rgba(124,92,255,.25),transparent 60%),var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55;padding:env(safe-area-inset-top,0) 14px 40px;max-width:900px;margin:auto}
+h1{font-size:21px;margin:16px 0}h2{font-size:15px;color:var(--acc);margin:18px 0 8px}
+.box,.c{background:linear-gradient(160deg,#18234a,#101830);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+input,select,textarea{width:100%;background:#0b1224;color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;margin:4px 0 8px;direction:ltr;text-align:left}textarea{direction:rtl;text-align:right}
+button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;background:linear-gradient(135deg,var(--vio),var(--cy));color:#fff}button.g{background:transparent;border:1px solid var(--line);color:var(--tx)}button.r{background:transparent;border:1px solid var(--bad);color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.row .n{flex:none}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:10px 0}.tabs button{flex:none;background:var(--card);border:1px solid var(--line);color:var(--mut)}.tabs button.on{color:#fff;border-color:var(--vio);background:#1f2c57}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:10px}.stats div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}.stats b{display:block;font-size:24px}.stats span{font-size:12px;color:var(--mut)}
+.u{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.u small{color:var(--mut)}.b{font-size:12px;padding:2px 8px;border-radius:20px;background:#1f2c57}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.act{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.act button{font-size:12px;padding:6px 10px}
+.msg{color:var(--bad);font-size:13px;min-height:18px}[hidden]{display:none!important}
+</style></head><body>
+<div id="login" class="box" style="max-width:420px;margin:60px auto">
+ <h1>🔐 لوحة التحكم</h1>
+ <label>رابط المشروع</label><input id="url"><label>المفتاح العام (anon)</label><input id="key" type="password">
+ <label>الإيميل</label><input id="em" type="email" autocomplete="username"><label>كلمة السر</label><input id="pw" type="password" autocomplete="current-password">
+ <div class="row"><button id="bin">دخول</button><button class="g" id="bup">إنشاء حساب</button></div><p class="msg" id="lm"></p>
+</div>
+<div id="app" hidden>
+ <div class="row"><h1>📊 لوحة التحكم</h1><span class="n" id="who" style="color:var(--mut);font-size:12px"></span><button class="g n" id="out">خروج</button></div>
+ <div class="tabs" id="tb"><button data-t="users" class="on">المستخدمون</button><button data-t="msg">الرسائل <span id="mb" class="b" hidden></span></button><button data-t="subs">الاشتراكات</button><button data-t="signals">الإشارات والأداء</button><button data-t="ann">الإعلانات</button><button data-t="bo">منع التداول</button><button data-t="srv">الخادم</button></div>
+ <div id="main"></div>
+</div>
+<script>
+const $=id=>document.getElementById(id),LS=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},SV=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let S=Object.assign({url:'https://ddcetignmcotplnkusja.supabase.co',key:'',at:'',rt:'',exp:0,uid:'',em:''},LS('adm')||{}),TAB='users';
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function authCall(p,body){const r=await fetch(`${S.url}/auth/v1/${p}`,{method:'POST',headers:{apikey:S.key,'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error_description||j.msg||j.message||('خطأ '+r.status));return j}
+function keep(j){S.at=j.access_token;S.rt=j.refresh_token;S.exp=Math.floor(Date.now()/1000)+(j.expires_in||3600);if(j.user){S.uid=j.user.id;S.em=j.user.email}SV('adm',S)}
+async function token(){if(S.rt&&S.exp-Math.floor(Date.now()/1000)<90){try{keep(await authCall('token?grant_type=refresh_token',{refresh_token:S.rt}))}catch(e){logout();throw e}}return S.at}
+async function api(path,method='GET',body){const t=await token(),r=await fetch(`${S.url}/rest/v1/${path}`,{method,headers:{apikey:S.key,Authorization:'Bearer '+t,'Content-Type':'application/json',Prefer:'return=representation'},body:body?JSON.stringify(body):undefined});
+ if(!r.ok)throw new Error(r.status+' '+(await r.text()).slice(0,140));const x=await r.text();return x?JSON.parse(x):null}
+function logout(){S.at=S.rt='';S.exp=0;SV('adm',S);$('app').hidden=true;$('login').hidden=false}
+async function enter(){try{const p=await api(`profiles?select=role,status&id=eq.${S.uid}`);if(!p||!p[0]||p[0].role!=='admin'||p[0].status!=='active'){$('lm').textContent='هالحساب مو أدمن. شغّل أمر الترقية بـ SQL ثم ادخل من جديد.';logout();return}
+  $('login').hidden=true;$('app').hidden=false;$('who').textContent=S.em;show(TAB);unread()}catch(e){$('lm').textContent=e.message}}
+async function login(signup){S.url=$('url').value.trim().replace(/\/$/,'');S.key=$('key').value.trim();$('lm').textContent='';
+ try{const e=$('em').value.trim(),w=$('pw').value;let j;
+  if(signup){j=await authCall('signup',{email:e,password:w});if(!j.access_token){$('lm').textContent='تم إنشاء الحساب. إذا طلب تأكيد بريد أكّده، ثم رقّي الحساب لأدمن بـ SQL وادخل.';return}}
+  else j=await authCall('token?grant_type=password',{email:e,password:w});
+  keep(j);await enter()}catch(x){$('lm').textContent=x.message}}
+$('bin').onclick=()=>login(false);$('bup').onclick=()=>login(true);$('out').onclick=logout;
+function selTab(t){TAB=t;[...$('tb').children].forEach(b=>b.classList.toggle('on',b.dataset.t===t));show(t)}
+$('tb').onclick=e=>{const b=e.target.closest('button[data-t]');if(b)selTab(b.dataset.t)};
+let OPEN=null;const RG={all:'الكل',sy:'داخل سوريا',intl:'خارج سوريا'};
+async function unread(){try{const x=await api('messages?select=id&from_admin=eq.false&read=eq.false');const b=$('mb');b.hidden=!x.length;b.textContent=x.length}catch(e){}}
+setInterval(()=>{if(S.at&&!$('app').hidden)unread()},30000);
+const dl=p=>{const e=Math.max(p.sub_ends_at?+new Date(p.sub_ends_at):0,+new Date(p.trial_ends_at));return Math.ceil((e-Date.now())/864e5)};
+const fd=d=>d?new Date(d).toLocaleString('ar-EG',{dateStyle:'medium',timeStyle:'short'}):'—';
+const rpc=(f,b)=>api('rpc/'+f,'POST',b);
+async function show(t){const m=$('main');m.innerHTML='<div class="box">جاري التحميل...</div>';try{await V[t](m)}catch(e){m.innerHTML=`<div class="box bad">${esc(e.message)}</div>`}}
+const V={
+ async users(m){const P=await api('profiles?select=*&order=created_at.desc&limit=500'),now=Date.now(),paid=P.filter(p=>p.sub_ends_at&&+new Date(p.sub_ends_at)>now).length,tr=P.filter(p=>!(p.sub_ends_at&&+new Date(p.sub_ends_at)>now)&&+new Date(p.trial_ends_at)>now).length;
+  m.innerHTML=`<div class="stats"><div><b>${P.length}</b><span>كل الحسابات</span></div><div><b class="ok">${paid}</b><span>مشتركين</span></div><div><b>${tr}</b><span>تجريبي</span></div><div><b class="bad">${P.length-paid-tr}</b><span>منتهي</span></div></div><input id="q" placeholder="بحث بالإيميل" style="direction:rtl"><div id="ul"></div>`;
+  const draw=()=>{const q=$('q').value.toLowerCase();$('ul').innerHTML='';P.filter(p=>(p.email||'').toLowerCase().includes(q)).forEach(p=>{const d=dl(p),c=document.createElement('div');c.className='c';
+   c.innerHTML=`<div class="u"><div><b dir="ltr">${esc(p.email)}</b> ${p.role==='admin'?'<span class="b">أدمن</span>':''} ${p.status==='suspended'?'<span class="b bad">موقوف</span>':''}<br><small>سجّل: ${fd(p.created_at)} • الجهاز: ${p.device_id?'مرتبط':'غير مرتبط'}<br>📍 ${p.country?esc(p.country)+(p.city?'، '+esc(p.city):''):'الموقع غير معروف'} • آخر ظهور: ${fd(p.last_seen)}</small></div><div style="text-align:left"><b class="${d>0?'ok':'bad'}">${d>0?d+' يوم':'منتهي'}</b><br><small>${p.sub_ends_at&&+new Date(p.sub_ends_at)>Date.now()?'اشتراك':'تجريبي'}</small></div></div><div class="act"></div>`;
+   const a=c.querySelector('.act'),B=(t,cls,fn)=>{const b=document.createElement('button');b.textContent=t;if(cls)b.className=cls;b.onclick=async()=>{b.disabled=true;try{await fn();show('users')}catch(e){alert(e.message);b.disabled=false}};a.appendChild(b)};
+   [7,30,90].forEach(n=>B('+'+n+' يوم','',()=>rpc('admin_extend',{uid:p.id,days:n})));
+   B(p.status==='suspended'?'تفعيل':'إيقاف',p.status==='suspended'?'g':'r',()=>rpc('admin_set_status',{uid:p.id,s:p.status==='suspended'?'active':'suspended'}));
+   if(p.device_id)B('فك ارتباط الجهاز','g',()=>rpc('admin_reset_device',{uid:p.id}));{const mb=document.createElement('button');mb.textContent='💬 رسالة';mb.className='g';mb.onclick=()=>{OPEN=p.id;selTab('msg')};a.appendChild(mb)}$('ul').appendChild(c)})};$('q').oninput=draw;draw()},
+
+ async msg(m){const [A,P]=await Promise.all([api('messages?select=*&order=created_at.asc&limit=1000'),api('profiles?select=id,email,country,city&limit=500')]),pm=Object.fromEntries(P.map(x=>[x.id,x])),g={};
+  A.forEach(x=>{(g[x.user_id]=g[x.user_id]||[]).push(x)});
+  const ids=Object.keys(g).sort((a,b)=>+new Date(g[b][g[b].length-1].created_at)-+new Date(g[a][g[a].length-1].created_at));
+  if(OPEN&&!g[OPEN])g[OPEN]=[],ids.unshift(OPEN);
+  const th=u=>{const L=g[u]||[],p=pm[u]||{};m.innerHTML=`<div class="row"><button class="g n" id="bk">← الرجوع</button><b dir="ltr">${esc(p.email)}</b><span class="n" style="color:var(--mut);font-size:12px">📍 ${esc(p.country||'؟')}</span></div><div id="cv" class="box" style="max-height:50vh;overflow:auto">${L.map(x=>`<div style="text-align:${x.from_admin?'left':'right'};margin:6px 0"><span class="b" style="display:inline-block;max-width:85%;padding:8px 12px;border-radius:14px;background:${x.from_admin?'#2c3f7a':'#1b2646'};white-space:pre-wrap;text-align:right">${esc(x.body)}</span><br><small style="color:var(--mut)">${fd(x.created_at)}</small></div>`).join('')||'<small>لا رسائل</small>'}</div><textarea id="rb" rows="3" placeholder="اكتب ردك..."></textarea><button id="rs">إرسال</button>`;
+   const cvb=$('cv');cvb.scrollTop=cvb.scrollHeight;rpc('mark_read',{uid:u}).then(unread).catch(()=>{});
+   $('bk').onclick=()=>{OPEN=null;show('msg')};$('rs').onclick=async()=>{const b=$('rb').value.trim();if(!b)return;await api('messages','POST',{user_id:u,from_admin:true,body:b});show('msg')}};
+  if(OPEN){th(OPEN);return}
+  m.innerHTML=ids.map(u=>{const L=g[u],last=L[L.length-1],un=L.filter(x=>!x.from_admin&&!x.read).length,p=pm[u]||{};return `<div class="c u" data-u="${u}" style="cursor:pointer"><div><b dir="ltr">${esc(p.email||u)}</b> ${un?`<span class="b bad">${un} جديد</span>`:''}<br><small>${esc(last.body.slice(0,70))}</small></div><small>${fd(last.created_at)}</small></div>`}).join('')||'<div class="box">ما في رسائل</div>';
+  m.querySelectorAll('[data-u]').forEach(e=>e.onclick=()=>{OPEN=e.dataset.u;show('msg')})},
+ async subs(m){const [R,Pl,Pm,Us]=await Promise.all([api('sub_requests?select=*&status=eq.pending&order=created_at.desc'),api('plans?select=*&order=region.asc,sort.asc'),api('payment_methods?select=*&order=region.asc,sort.asc'),api('profiles?select=id,email&limit=500')]),em=Object.fromEntries(Us.map(x=>[x.id,x.email])),sel=`<select class="rgs"><option value="all">الكل</option><option value="sy">داخل سوريا</option><option value="intl">خارج سوريا</option></select>`;
+  m.innerHTML=`<h2>طلبات الاشتراك المعلّقة (${R.length})</h2>`+(R.map(r=>`<div class="c u"><div><b dir="ltr">${esc(em[r.user_id]||r.user_id)}</b><br><small>${esc(r.plan_name||'—')} • ${r.days} يوم • ${fd(r.created_at)}</small></div><div class="act"><button data-ok="${r.id}">✅ تفعيل</button><button class="r" data-no="${r.id}">رفض</button><button class="g" data-msg="${r.user_id}">💬</button></div></div>`).join('')||'<div class="box">ما في طلبات</div>')+
+  `<h2>الخطط (الأسعار والمدة)</h2>`+Pl.map(x=>`<div class="c u"><div><b>${esc(x.name)}</b> <span class="b">${RG[x.region]}</span> ${x.active?'':'<span class="b bad">مخفية</span>'}<br><small>${x.days} يوم • ${x.price_usd!=null?'$'+x.price_usd:''} ${x.price_syp!=null?x.price_syp+' ل.س':''}<br>${esc(x.description||'')}</small></div><div class="act"><button class="g" data-pt="${x.id}" data-a="${x.active}">${x.active?'إخفاء':'إظهار'}</button><button class="r" data-pd="${x.id}">حذف</button></div></div>`).join('')+
+  `<div class="box"><b>خطة جديدة</b><input id="pn" placeholder="الاسم (شهري، 3 أشهر...)" style="direction:rtl"><div class="row"><input id="pdays" type="number" placeholder="المدة بالأيام"><input id="pusd" type="number" placeholder="السعر $"><input id="psyp" type="number" placeholder="السعر ل.س"></div>${sel.replace('class="rgs"','id="prg"')}<input id="pds" placeholder="وصف قصير" style="direction:rtl"><button id="pa">إضافة الخطة</button></div>`+
+  `<h2>طرق الدفع</h2>`+Pm.map(x=>`<div class="c u"><div><b>${esc(x.name)}</b> <span class="b">${RG[x.region]}</span> ${x.active?'':'<span class="b bad">مخفية</span>'}<br><small style="white-space:pre-wrap">${esc(x.details)}</small></div><div class="act"><button class="g" data-mt="${x.id}" data-a="${x.active}">${x.active?'إخفاء':'إظهار'}</button><button class="r" data-md="${x.id}">حذف</button></div></div>`).join('')+
+  `<div class="box"><b>طريقة دفع جديدة</b><input id="mn" placeholder="الاسم (شام كاش، حوالة، USDT...)" style="direction:rtl"><textarea id="mdt" rows="3" placeholder="التفاصيل: رقم الحساب/المحفظة وتعليمات الدفع"></textarea>${sel.replace('class="rgs"','id="mrg"')}<button id="ma">إضافة الطريقة</button></div>`;
+  const go=()=>show('subs'),n=v=>v===''?null:+v;
+  m.querySelectorAll('[data-ok]').forEach(b=>b.onclick=async()=>{await rpc('admin_decide_request',{rid:+b.dataset.ok,approve:true});go()});
+  m.querySelectorAll('[data-no]').forEach(b=>b.onclick=async()=>{await rpc('admin_decide_request',{rid:+b.dataset.no,approve:false});go()});
+  m.querySelectorAll('[data-msg]').forEach(b=>b.onclick=()=>{OPEN=b.dataset.msg;selTab('msg')});
+  m.querySelectorAll('[data-pt]').forEach(b=>b.onclick=async()=>{await api('plans?id=eq.'+b.dataset.pt,'PATCH',{active:b.dataset.a!=='true'});go()});
+  m.querySelectorAll('[data-pd]').forEach(b=>b.onclick=async()=>{if(confirm('حذف الخطة؟')){await api('plans?id=eq.'+b.dataset.pd,'DELETE');go()}});
+  m.querySelectorAll('[data-mt]').forEach(b=>b.onclick=async()=>{await api('payment_methods?id=eq.'+b.dataset.mt,'PATCH',{active:b.dataset.a!=='true'});go()});
+  m.querySelectorAll('[data-md]').forEach(b=>b.onclick=async()=>{if(confirm('حذف الطريقة؟')){await api('payment_methods?id=eq.'+b.dataset.md,'DELETE');go()}});
+  $('pa').onclick=async()=>{const nm=$('pn').value.trim(),d=+$('pdays').value;if(!nm||!(d>0)){alert('اكتب الاسم والمدة');return}await api('plans','POST',{name:nm,days:d,price_usd:n($('pusd').value),price_syp:n($('psyp').value),region:$('prg').value,description:$('pds').value});go()};
+  $('ma').onclick=async()=>{const nm=$('mn').value.trim(),dt=$('mdt').value.trim();if(!nm||!dt){alert('اكتب الاسم والتفاصيل');return}await api('payment_methods','POST',{name:nm,details:dt,region:$('mrg').value});go()}},
+ async signals(m){const [st,sg]=await Promise.all([api('strategy_stats?select=*').catch(()=>[]),api('signals?select=*&order=created_at.desc&limit=40')]);
+  m.innerHTML='<h2>أداء الاستراتيجيات</h2>'+(st.map(x=>`<div class="c u"><div><b>${esc(x.strategy)}</b><br><small>${x.total} إشارة • ${x.tp1_plus||0} هدف1+ • ${x.losses||0} وقف</small></div><b class="${(x.tp1_rate_pct||0)>=50?'ok':'bad'}">${x.tp1_rate_pct??'—'}%</b></div>`).join('')||'<div class="box">لا بيانات</div>')+'<h2>آخر الإشارات</h2>'+sg.map(x=>`<div class="c u"><div><b dir="ltr">${esc(x.sym)}</b> ${x.is_long?'🟢':'🔴'} <span class="b">${esc(x.strategy)}</span><br><small>دخول ${x.entry} • وقف ${x.sl} • ${fd(x.created_at)}</small></div><div style="text-align:left"><b>${esc(x.res)}</b><br><small>أهداف: ${x.st||0}</small></div></div>`).join('')},
+ async ann(m){const A=await api('announcements?select=*&order=created_at.desc&limit=30');
+  m.innerHTML=`<div class="box"><label style="color:var(--mut)">إعلان جديد (بيظهر لكل المستخدمين)</label><textarea id="ab" rows="3"></textarea><button id="aa">نشر</button></div>`+A.map(a=>`<div class="c u"><div>${esc(a.body)}<br><small>${fd(a.created_at)}</small></div><div class="act"><button class="g" data-t="${a.id}" data-a="${a.active}">${a.active?'إخفاء':'إظهار'}</button><button class="r" data-d="${a.id}">حذف</button></div></div>`).join('');
+  $('aa').onclick=async()=>{const b=$('ab').value.trim();if(b){await api('announcements','POST',{body:b});show('ann')}};
+  m.querySelectorAll('[data-t]').forEach(b=>b.onclick=async()=>{await api('announcements?id=eq.'+b.dataset.t,'PATCH',{active:b.dataset.a!=='true'});show('ann')});
+  m.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{await api('announcements?id=eq.'+b.dataset.d,'DELETE');show('ann')})},
+ async bo(m){const B=await api('blackouts?select=*&order=starts_at.desc&limit=50');
+  m.innerHTML=`<div class="box"><p style="color:var(--mut);font-size:13px;margin-top:0">خلال الفترة (وقبلها بـ 48 ساعة) الخادم ما بيطلّع إشارات جديدة. استعمله لأحداث قوية: قرار الفائدة، التضخم...</p><label>من</label><input id="bs" type="datetime-local"><label>إلى</label><input id="be" type="datetime-local"><input id="bn" placeholder="ملاحظة (مثال: قرار الفائدة الأمريكي)" style="direction:rtl"><button id="ba">إضافة</button></div>`+B.map(x=>`<div class="c u"><div>${esc(x.note||'بدون ملاحظة')}<br><small>${fd(x.starts_at)} ← ${fd(x.ends_at)}</small></div><button class="r" data-d="${x.id}">حذف</button></div>`).join('');
+  $('ba').onclick=async()=>{if($('bs').value&&$('be').value){await api('blackouts','POST',{starts_at:new Date($('bs').value).toISOString(),ends_at:new Date($('be').value).toISOString(),note:$('bn').value});show('bo')}};
+  m.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{await api('blackouts?id=eq.'+b.dataset.d,'DELETE');show('bo')})},
+ async srv(m){const r=(await api('scan_status?select=*&id=eq.1'))[0];if(!r){m.innerHTML='<div class="box">ما في نبض من الخادم بعد</div>';return}const ag=Math.round((Date.now()-new Date(r.updated_at))/60000);
+  m.innerHTML=`<div class="stats"><div><b class="${ag>25?'bad':'ok'}">${ag} د</b><span>آخر نشاط</span></div><div><b>${r.coins??'—'}</b><span>عملة</span></div><div><b>${r.batches_done}/${r.batches_total}</b><span>الدفعات</span></div><div><b class="${r.blocked?'bad':'ok'}">${r.blocked?'موقوف':'شغّال'}</b><span>الحالة</span></div></div>`}
+};
+$('url').value=S.url;$('key').value=S.key;if(S.at&&S.rt)enter();
+</script></body></html>

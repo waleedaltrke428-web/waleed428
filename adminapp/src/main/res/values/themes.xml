@@ -1,0 +1,8 @@
+<resources>
+    <color name="ic_bg">#2B1D5C</color>
+    <style name="AdminTheme" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">#0B1020</item>
+        <item name="android:statusBarColor">#0B1020</item>
+        <item name="android:navigationBarColor">#0B1020</item>
+    </style>
+</resources>
